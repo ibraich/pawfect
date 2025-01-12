@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pawfect_app"
+rootProject.name = "Pawfect Match"
 include(":app")
- 
