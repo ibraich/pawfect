@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Database {
     public static HashMap<Integer, User> allUsers = new HashMap<>();
@@ -73,36 +74,10 @@ public class Database {
         return friendLists.get(id);
     }
 
-    public static List<Question> listOfQuestions = new ArrayList<>();
+    public static List<Question> listOfQuestions = Question.getListOfQuestions();
 
-    static {
-        listOfQuestions.add(
-                new Question(
-                        "I'm looking a friend for my dog for",
-                        "To have a good time together",
-                        "To walk together somewhere",
-                        "To play together outside")
-        );
-
-        listOfQuestions.add(
-                new Question(
-                        "How does your dog feel about new people?",
-                        "Positive",
-                        "Negative",
-                        "Neutral")
-        );
-
-        listOfQuestions.add(
-                new Question(
-                        "Is your dog active?",
-                        "Yes",
-                        "No",
-                        "I don't know")
-        );
-    }
-
-    public static List<Question> getAllQuestions() {
-        return listOfQuestions;
+    public static Map<String, List<Question>> getCategorizedQuestions() {
+        return Question.getQuestionsByCategory();
     }
 
     public static HashMap<Integer, List<Message>> usersMessages = new HashMap<>();
