@@ -1,0 +1,349 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "How does your dog typically greet you when you come home?",
+      "category": "Greeting and Social Behavior",
+      "options": [
+        {
+          "text": "Jumps excitedly and showers you with kisses",
+          "personalities": ["Social Butterfly", "Playful Fetcher"]
+        },
+        {
+          "text": "Wags tail and waits patiently for attention",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Barks happily and brings you a toy",
+          "personalities": ["Playful Fetcher", "Adventurous Explorer"]
+        },
+        {
+          "text": "Seems indifferent or takes their time greeting you",
+          "personalities": ["Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "question": "What's your dog's preferred sleeping position?",
+      "category": "Daily Habits and Preferences",
+      "options": [
+        {
+          "text": "Curled up in a ball",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Stretched out on their back",
+          "personalities": ["Social Butterfly", "Adventurous Explorer"]
+        },
+        {
+          "text": "On their side, paws in the air",
+          "personalities": ["Chill Couch Potato", "Playful Fetcher"]
+        },
+        {
+          "text": "Under the covers or in a tight space",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "question": "How does your dog react to new people visiting your home?",
+      "category": "Greeting and Social Behavior",
+      "options": [
+        {
+          "text": "Overly friendly and eager to say hello to everyone",
+          "personalities": ["Social Butterfly"]
+        },
+        {
+          "text": "Friendly after a brief period of observation",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Wary or hesitant at first, but warms up eventually",
+          "personalities": ["Chill Couch Potato", "Adventurous Explorer"]
+        },
+        {
+          "text": "Keeps their distance or avoids the new people",
+          "personalities": ["Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "question": "If your dog could talk, what would their catchphrase be?",
+      "category": "Unique Personality",
+      "options": [
+        {
+          "text": "\"Let's play!\"",
+          "personalities": ["Playful Fetcher", "Social Butterfly"]
+        },
+        {
+          "text": "\"Food, please!\"",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "\"I love you!\"",
+          "personalities": ["Social Butterfly", "Chill Couch Potato"]
+        },
+        {
+          "text": "\"Leave me alone.\"",
+          "personalities": ["Brainy Strategist"]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "question": "How does your dog react when they see other dogs on walks?",
+      "category": "Greeting and Social Behavior",
+      "options": [
+        {
+          "text": "Pulls on the leash and tries to greet them excitedly",
+          "personalities": ["Social Butterfly", "Adventurous Explorer"]
+        },
+        {
+          "text": "Observes them with interest but remains calm",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Barks or lunges at them",
+          "personalities": ["Playful Fetcher", "Adventurous Explorer"]
+        },
+        {
+          "text": "Tries to avoid or ignore them",
+          "personalities": ["Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "question": "What's your dog's go-to method for getting your attention?",
+      "category": "Daily Habits and Preferences",
+      "options": [
+        {
+          "text": "Nudges you with their nose or paw",
+          "personalities": ["Social Butterfly", "Playful Fetcher"]
+        },
+        {
+          "text": "Sits and stares at you intently",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Barks or whines until you acknowledge them",
+          "personalities": ["Playful Fetcher", "Social Butterfly"]
+        },
+        {
+          "text": "Brings you a toy or their leash",
+          "personalities": ["Adventurous Explorer", "Playful Fetcher"]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "question": "How does your dog typically behave in a car ride?",
+      "category": "Reactions to Activities",
+      "options": [
+        {
+          "text": "Sits calmly and enjoys the view",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Gets anxious or carsick",
+          "personalities": ["Chill Couch Potato"]
+        },
+        {
+          "text": "Barks excitedly or tries to climb into the front seat",
+          "personalities": ["Social Butterfly", "Playful Fetcher"]
+        },
+        {
+          "text": "Sleeps the whole way",
+          "personalities": ["Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "question": "What's your dog's favorite treat?",
+      "category": "Daily Habits and Preferences",
+      "options": [
+        {
+          "text": "Anything meaty or chewy",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Crunchy biscuits or cookies",
+          "personalities": ["Chill Couch Potato"]
+        },
+        {
+          "text": "Fruits and vegetables",
+          "personalities": ["Adventurous Explorer", "Brainy Strategist"]
+        },
+        {
+          "text": "Peanut butter or cheese",
+          "personalities": ["Playful Fetcher"]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "question": "How does your dog react to bath time?",
+      "category": "Reactions to Activities",
+      "options": [
+        {
+          "text": "Loves it and jumps right in",
+          "personalities": ["Adventurous Explorer", "Playful Fetcher"]
+        },
+        {
+          "text": "Tolerates it, but isn't thrilled",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Tries to escape or hide",
+          "personalities": ["Chill Couch Potato"]
+        },
+        {
+          "text": "Actively resists and makes it a challenge",
+          "personalities": ["Playful Fetcher"]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "question": "If your dog had a theme song, what would it be?",
+      "category": "Unique Personality",
+      "options": [
+        {
+          "text": "\"Walking on Sunshine\"",
+          "personalities": ["Social Butterfly", "Adventurous Explorer"]
+        },
+        {
+          "text": "\"Who Let the Dogs Out?\"",
+          "personalities": ["Playful Fetcher", "Social Butterfly"]
+        },
+        {
+          "text": "\"Hakuna Matata\"",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "\"The Imperial March\" (Darth Vader's theme)",
+          "personalities": ["Brainy Strategist", "Adventurous Explorer"]
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "question": "How does your dog behave when meeting new animals (cats, squirrels, etc.)?",
+      "category": "Love and Affection",
+      "options": [
+        {
+          "text": "Curious and wants to play",
+          "personalities": ["Social Butterfly", "Adventurous Explorer"]
+        },
+        {
+          "text": "Cautious but friendly",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Chases them or tries to catch them",
+          "personalities": ["Playful Fetcher", "Adventurous Explorer"]
+        },
+        {
+          "text": "Ignores them completely",
+          "personalities": ["Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "question": "What is your dog's favorite place to be petted?",
+      "category": "Love and Affection",
+      "options": [
+        {
+          "text": "Belly rubs!",
+          "personalities": ["Playful Fetcher", "Social Butterfly"]
+        },
+        {
+          "text": "Behind the ears",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Under the chin",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Base of the tail",
+          "personalities": ["Playful Fetcher", "Adventurous Explorer"]
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "question": "How would you describe your dog's overall demeanor?",
+      "category": "Unique Personality",
+      "options": [
+        {
+          "text": "Goofy and playful",
+          "personalities": ["Playful Fetcher", "Social Butterfly"]
+        },
+        {
+          "text": "Loyal and protective",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Independent and aloof",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Cuddly and affectionate",
+          "personalities": ["Social Butterfly", "Chill Couch Potato"]
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "question": "What's your dog's biggest fear?",
+      "category": "Reactions to Activities",
+      "options": [
+        {
+          "text": "Loud noises",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Being alone",
+          "personalities": ["Social Butterfly", "Chill Couch Potato"]
+        },
+        {
+          "text": "Veterinarian visits",
+          "personalities": ["Brainy Strategist", "Chill Couch Potato"]
+        },
+        {
+          "text": "Vacuum cleaners",
+          "personalities": ["Playful Fetcher", "Social Butterfly"]
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "question": "How does your dog express their love for you?",
+      "category": "Love and Affection",
+      "options": [
+        {
+          "text": "Licking your face",
+          "personalities": ["Social Butterfly", "Playful Fetcher"]
+        },
+        {
+          "text": "Wagging their tail and leaning against you",
+          "personalities": ["Chill Couch Potato", "Brainy Strategist"]
+        },
+        {
+          "text": "Bringing you gifts (toys, socks, etc.)",
+          "personalities": ["Playful Fetcher", "Adventurous Explorer"]
+        },
+        {
+          "text": "Following you everywhere you go",
+          "personalities": ["Social Butterfly", "Chill Couch Potato"]
+        }
+      ]
+    }
+  ]
+}

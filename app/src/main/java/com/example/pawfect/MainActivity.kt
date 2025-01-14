@@ -1,5 +1,6 @@
 package com.example.pawfect
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +15,7 @@ import androidx.navigation.navArgument
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Question.loadQuestions(this)
         setContent {
             MyApp()
         }
@@ -63,6 +65,10 @@ fun MyApp() {
 
         composable("calibration_screen") {
             CalibrationScreen(navController)
+        }
+
+        composable("ai_calibration_screen") {
+            AICalibrationScreen(navController)
         }
 
         composable("routes_screen") {

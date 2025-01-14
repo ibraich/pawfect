@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -171,7 +172,7 @@ fun ProfileSettingsScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Calibrate preferences button
+            // Self/Manual Calibrate preferences button
             Button(
                 onClick = { navController.navigate("calibration_screen") },
                 modifier = Modifier
@@ -180,12 +181,42 @@ fun ProfileSettingsScreen(navController: NavHostController) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
             ) {
                 Text(
-                    text = "Calibrate your friend search preferences",
+                    text = "Self Calibrate Personality",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
             }
+
+            // AI Calibrate Personality button
+            Button(
+                onClick = { navController.navigate("ai_calibration_screen") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // AI Icon on the left
+                    Icon(
+                        painter = painterResource(id = R.drawable.ai),
+                        contentDescription = "AI Icon",
+                        tint = Color.Black,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "AI Calibrate Personality",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                }
+            }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
