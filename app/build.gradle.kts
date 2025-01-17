@@ -69,4 +69,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.2.2")
     implementation("io.coil-kt:coil-gif:2.2.2")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.compose.ui:ui-graphics:1.5.0")
+    implementation("androidx.compose.ui:ui-tooling:1.5.0")
+    implementation("org.tensorflow:tensorflow-android:1.8.0")
+
 }

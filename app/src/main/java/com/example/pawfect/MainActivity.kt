@@ -32,6 +32,8 @@ fun MyApp() {
         // Insert activity with map
         composable("profile_screen") { ProfileScreen(navController) }
         composable("match_screen") { MatchScreen(navController) }
+        composable("recognize_breed_screen") { RecognizeBreedScreen(navController) }
+
         composable(
             route = "plan_activity_screen/{friendId}",
             arguments = listOf(

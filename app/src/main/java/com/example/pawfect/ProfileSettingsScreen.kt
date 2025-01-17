@@ -146,7 +146,7 @@ fun ProfileSettingsScreen(navController: NavHostController) {
 
             // Recognize breed button
             Button(
-                onClick = { /*TODO*/ dogBreed = "Recognized breed: Golden Retriever" }, // Update breed here
+                onClick = { navController.navigate("recognize_breed_screen") }, // Update breed here
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp)),
