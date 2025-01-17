@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 
     id("kotlin-parcelize")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -73,10 +74,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling:1.5.0")
     implementation("org.tensorflow:tensorflow-android:1.8.0")
     implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
+
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.ai.client.generativeai:generativeai:0.7.0")
-
+    implementation("org.mindrot:jbcrypt:0.4")
 }

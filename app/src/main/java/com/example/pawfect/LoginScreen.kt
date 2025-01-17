@@ -1,5 +1,6 @@
 package com.example.pawfect
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,11 +31,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.firestore.FirebaseFirestore
+import org.mindrot.jbcrypt.BCrypt
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation.Companion.None
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+
 
 @Preview
 @Composable
 fun PreviewLoginScreen() {
     LoginScreen(rememberNavController())
+}
+
+fun hashPassword(password: String): String {
+    return BCrypt.hashpw(password, BCrypt.gensalt())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +74,7 @@ fun LoginScreen(navController: NavHostController) {
             )
 
             var textLoginState by remember { mutableStateOf("") }
+            var errorMessage by remember { mutableStateOf<String?>(null) }
 
             TextField(
                 value = textLoginState,
@@ -77,11 +94,22 @@ fun LoginScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(10.dp))
 
             var textPasswordState by remember { mutableStateOf("") }
+            var passwordVisible by remember { mutableStateOf(false) }
 
             TextField(
                 value = textPasswordState,
                 onValueChange = { textPasswordState = it },
                 placeholder = { Text(text = "Password") },
+                visualTransformation = if (passwordVisible) None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
+
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp)),
                 singleLine = true,
@@ -93,10 +121,39 @@ fun LoginScreen(navController: NavHostController) {
                 )
             )
 
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             Button(
                 onClick = {
                     /* TODO */
-                    navController.navigate("profile_screen") },
+                    if (textLoginState.isEmpty() || textPasswordState.isEmpty()) {
+                        errorMessage = "Both fields are required"
+                    } else {
+                        val db = FirebaseFirestore.getInstance()
+                        val hashedPassword = hashPassword(textPasswordState)
+                        val user = hashMapOf(
+                            "login" to textLoginState,
+                            "password" to hashedPassword
+                        )
+                        db.collection("Users")
+                            .add(user)
+                            .addOnSuccessListener { documentReference ->
+                                Log.d("Firestore", "User added with ID: ${documentReference.id}")
+                                navController.navigate("profile_screen")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("Firestore", "Error adding user", e)
+                                errorMessage = "An error occurred. Please try again."
+                            }
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB6C1)),
                 shape = RoundedCornerShape(50.dp),
                 modifier = Modifier
