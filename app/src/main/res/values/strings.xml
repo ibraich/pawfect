@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name" translatable="false">Pawfect Match</string>
+    <string name="gemini_querey" translatable="false">I will pass you coordinates of the place.
+        Please generate a walking path near this place, where I can walk my dog.
+        Return ONLY the list of coordinates for this path, NO TEXT. My coordinates - </string>
 
     <string-array name="breeds_array">
         <item>Affenpinscher</item>

@@ -44,16 +44,21 @@ import com.example.appinterface.R
 
 @Preview
 @Composable
-fun PreviewUserRoutesScreen() {
-    UserRoutesScreen(rememberNavController())
+fun GeminiWaitScreen() {
+    GeminiWaitScreen(rememberNavController())
 }
 
 @Composable
-fun UserRoutesScreen(navController: NavHostController) {
+fun GeminiWaitScreen(navController: NavHostController) {
+    val imageLoader = ImageLoader.Builder(LocalContext.current)
+        .components {
+            add(GifDecoder.Factory()) // Add GIF support
+        }
+        .build()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFFFF4F8)
+        color = Color.White
     ) {
         Column(
             modifier = Modifier
@@ -96,57 +101,37 @@ fun UserRoutesScreen(navController: NavHostController) {
                 }
                 .build()
 
-            // Image
-            Box(
+            //gif
+            Column(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .background(color = Color(0xFFFFC1CC), shape = RoundedCornerShape(16.dp))
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .aspectRatio(0.8f)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.raw.sad_dog)
-                        .build(),
-                    contentDescription = "Sad dog",
-                    imageLoader = imageLoader,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .background(color = Color(0xFFFFC1CC), shape = RoundedCornerShape(16.dp))
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .aspectRatio(0.8f)
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(R.drawable.load_dog)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Load dog",
+                        imageLoader = imageLoader,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop // Adjust content scaling
+                    )
+                }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Placeholder text
-            Text(
-                text = "No one has suggested going for a walk yet :'(",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFFF4081),
-                modifier = Modifier.padding(horizontal = 16.dp),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Refresh button
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(color = Color(0x8032CD32), shape = CircleShape)
-                    .clickable {
-                        // TODO refresh logic here
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_update),
-                    contentDescription = "Refresh",
-                    tint = Color.Black,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
         }
     }
 }

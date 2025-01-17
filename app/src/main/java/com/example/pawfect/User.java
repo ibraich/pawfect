@@ -1,5 +1,7 @@
 package com.example.pawfect;
 
+import com.google.firebase.firestore.GeoPoint;
+
 public class User {
     Integer id;
     Integer profileImage;
@@ -10,6 +12,8 @@ public class User {
     String userInfo;
     String ownerName;
     Integer ownerAge;
+    GeoPoint location;
+
 
     public User(Integer id,
                 Integer profileImage,
@@ -27,5 +31,6 @@ public class User {
         this.userInfo = userInfo;
         this.ownerName = ownerName;
         this.ownerAge = ownerAge;
+        this.location = new GeoPoint(37.7749, -122.4194);
     }
 }

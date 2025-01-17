@@ -164,7 +164,7 @@ fun PlanActivityScreen(navController: NavHostController, friendId: Int) {
                             .size(40.dp)
                             .clickable( indication = null,
                                 interactionSource = remember { MutableInteractionSource() })
-                            { navController.navigate("profile_screen")}
+                            { navController.navigate("gemini_wait_screen")}
                     )
                 }
 

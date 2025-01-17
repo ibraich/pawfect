@@ -76,6 +76,14 @@ fun MyApp() {
         composable("routes_screen") {
             UserRoutesScreen(navController)
         }
+
+        composable("walk_path_screen") {
+            WalkPathScreen(navController)
+        }
+
+        composable("gemini_wait_screen") {
+            GeminiWaitScreen(navController)
+        }
     }
 }
 
