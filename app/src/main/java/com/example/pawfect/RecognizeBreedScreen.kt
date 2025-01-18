@@ -175,7 +175,7 @@ fun RecognizeBreedScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Dog's name
+            // Dog's breed
             ProfileInfoField(label = "Dog’s breed:", initialValue = breedName.value)
 
             Spacer(modifier = Modifier.height(8.dp))

@@ -1,5 +1,9 @@
 package com.example.pawfect;
 
+import static android.content.ContentValues.TAG;
+
+import android.util.Log;
+
 import com.google.ai.client.generativeai.GenerativeModel;
 import com.google.ai.client.generativeai.java.GenerativeModelFutures;
 import com.google.ai.client.generativeai.type.BlockThreshold;
@@ -20,7 +24,7 @@ public class Gemini {
     private GenerativeModelFutures getModel() {
         String api_key = "AIzaSyDm27cC05NwVaRfZXCvfam1Ci65h80iVos";
         SafetySetting harassmentSafety = new SafetySetting(HarmCategory.HARASSMENT,
-                BlockThreshold.ONLY_HIGH);
+                BlockThreshold.LOW_AND_ABOVE);
 
         GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
         configBuilder.temperature = 0.9f;
@@ -28,14 +32,24 @@ public class Gemini {
         configBuilder.topP = 0.1f;
         GenerationConfig generationConfig = configBuilder.build();
 
-        GenerativeModel gm = new GenerativeModel(
-                "gemini-pro",
-                api_key,
-                generationConfig,
-                Collections.singletonList(harassmentSafety)
-        );
+        try {
+            GenerativeModel gm = new GenerativeModel(
+                    "gemini-pro",           // Model name
+                    api_key,                // API key
+                    generationConfig,       // Configuration settings
+                    Collections.singletonList(harassmentSafety) // Safety settings
+            );
 
-        return GenerativeModelFutures.from(gm);
+            Log.d(TAG, "Gemini model initialized successfully.");
+            return GenerativeModelFutures.from(gm);
+
+        } catch (Exception e) {
+            // Catch any exception during initialization or interaction with the model
+            Log.e(TAG, "Error initializing or using Gemini model: ", e);
+        }
+
+
+        return null;
     }
 
     public void getResponse(String query, ResponseCallback callback) {
@@ -48,12 +62,16 @@ public class Gemini {
         Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
             @Override
             public void onSuccess(GenerateContentResponse result) {
+                Log.d(TAG, "Response onSuccess: " + result.getText());
+
                 String resultText = result.getText();
                 callback.onResponse(resultText);
             }
 
             @Override
             public void onFailure(Throwable throwable) {
+                Log.d(TAG, "Response onFailure.");
+
                 throwable.printStackTrace();
                 callback.onError(throwable);
             }

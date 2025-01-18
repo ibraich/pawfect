@@ -1,5 +1,7 @@
 package com.example.pawfect
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -36,18 +38,26 @@ import com.example.appinterface.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 
 @Preview
 @Composable
 fun WalkPathScreen() {
-    WalkPathScreen(rememberNavController())
+    val coordinates = "37.7749, -122.4194, 37.774, -122.425, 37.7749, -122.4194"
+    WalkPathScreen(rememberNavController(), coordinates)
 }
 
 @Composable
-fun WalkPathScreen(navController: NavHostController) {
+fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
     val currentUser = Database.getUserById(0)
 
+    val coordinatesList = parseCoordinates(coordinates)
+
+
+    Log.d(TAG, "What do we get: " + coordinates);
+
+    /*
     val coordinates = listOf(
         LatLng(37.7749, -122.4194),
         LatLng(37.774, -122.425),
@@ -59,6 +69,8 @@ fun WalkPathScreen(navController: NavHostController) {
         LatLng(37.772, -122.45),
         LatLng(37.7749, -122.4194)
     )
+    */
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -109,22 +121,29 @@ fun WalkPathScreen(navController: NavHostController) {
                             googleMap.uiSettings.isZoomControlsEnabled = true
                             googleMap.uiSettings.isMyLocationButtonEnabled = true
 
-                            val startPoint = coordinates[0]
+                            val startPoint = coordinatesList[0]
                             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startPoint, 12f))
 
                             val polylineOptions = PolylineOptions()
-                                .addAll(coordinates) // Add all points to the polyline
-                                .width(8f)         // Set the width of the polyline
-
+                                .addAll(coordinatesList)
+                                .width(8f)
                             googleMap.addPolyline(polylineOptions)
+
+                            // Add markers to the map for each point in the coordinates list
+                            coordinatesList.forEach { latLng ->
+                                googleMap.addMarker(
+                                    MarkerOptions().position(latLng).title("Point: ${latLng.latitude}, ${latLng.longitude}")
+                                )
+                            }
+
                         }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp) // Adjust height as needed
+                    .height(400.dp)
             ) { mapView ->
-                mapView.onResume() // Ensure the MapView lifecycle is managed
+                mapView.onResume()
                 mapView.onStart()
             }
 
@@ -137,9 +156,8 @@ fun WalkPathScreen(navController: NavHostController) {
                 modifier = Modifier
                     .size(56.dp)
                     .background(color = Color(0x8032CD32), shape = CircleShape)
-                    .clickable {
-                        // TODO refresh logic here
-                    },
+                    .clickable( indication = null, interactionSource = remember { MutableInteractionSource() })
+                    { navController.navigate("gemini_wait_screen") },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -151,4 +169,14 @@ fun WalkPathScreen(navController: NavHostController) {
             }
         }
     }
+}
+
+fun parseCoordinates(coordinatesString: String?): List<LatLng> {
+    return coordinatesString
+        ?.trim()
+        ?.split("\n")
+        ?.map { coordinate ->
+            val (latitude, longitude) = coordinate.split(",").map { it.trim().toDouble() }
+            LatLng(latitude, longitude)
+        } ?: emptyList()
 }

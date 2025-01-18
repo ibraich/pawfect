@@ -77,9 +77,11 @@ fun MyApp() {
             UserRoutesScreen(navController)
         }
 
-        composable("walk_path_screen") {
-            WalkPathScreen(navController)
+        composable("walk_path_screen/{coordinates}") { backStackEntry ->
+            val coordinates = backStackEntry.arguments?.getString("coordinates")
+            WalkPathScreen(navController, coordinates)
         }
+
 
         composable("gemini_wait_screen") {
             GeminiWaitScreen(navController)
