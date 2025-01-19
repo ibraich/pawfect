@@ -50,7 +50,29 @@ fun AIPreviewCalibrationScreen() {
 
 @Composable
 fun AICalibrationScreen(navController: NavHostController) {
-    
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFF4F8))
+            .padding(16.dp)
+    ) {
+        // Top Bar with Back Button and Title
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.back_arrow),
+                contentDescription = "Back",
+                tint = Color.Black,
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { navController.navigate("profile_settings_screen") }
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+        }
+    }
 }
 
 

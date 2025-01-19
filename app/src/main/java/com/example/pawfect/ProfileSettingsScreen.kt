@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,7 @@ fun PreviewProfileSettingsScreen() {
 fun ProfileSettingsScreen(navController: NavHostController) {
     val currentUser = Database.getUserById(0)
     var dogBreed by remember { mutableStateOf(currentUser.dogBreed) }
+    var dogPersonality by remember { mutableStateOf(currentUser.dogPersonality) }
 
     // Scrollable container
     LazyColumn(
@@ -172,51 +174,17 @@ fun ProfileSettingsScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Self/Manual Calibrate preferences button
-            Button(
-                onClick = { navController.navigate("calibration_screen") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
-            ) {
-                Text(
-                    text = "Self Calibrate Personality",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
+            //TODO
+            // Fetch from DB On return navigation
+            ProfileInfoField(label = "Your dog’s personality:", initialValue = dogPersonality) {
+                    calibratedDogPersonality -> dogPersonality = calibratedDogPersonality
             }
 
-            // AI Calibrate Personality button
-            Button(
-                onClick = { navController.navigate("ai_calibration_screen") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    // AI Icon on the left
-                    Icon(
-                        painter = painterResource(id = R.drawable.ai),
-                        contentDescription = "AI Icon",
-                        tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "AI Calibrate Personality",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
+            SelfCalibrateButton(navController = navController)
+
+            AiCalibrateButton(navController = navController)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -249,6 +217,55 @@ fun ProfileSettingsScreen(navController: NavHostController) {
         }
     }
 }
+
+@Composable
+fun SelfCalibrateButton(navController: NavHostController) {
+    Button(
+        onClick = { navController.navigate("calibration_screen") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp)),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
+    ) {
+        Text(
+            text = "Self Calibrate",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+fun AiCalibrateButton(navController: NavHostController) {
+    Button(
+        onClick = { navController.navigate("ai_calibration_screen") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp)),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ai),
+                contentDescription = "AI Icon",
+                tint = Color.Black,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "AI Calibrate",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

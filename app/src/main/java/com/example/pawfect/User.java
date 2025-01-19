@@ -14,6 +14,7 @@ public class User {
     Integer ownerAge;
     GeoPoint location;
 
+    String dogPersonality;
 
     public User(Integer id,
                 Integer profileImage,
@@ -22,7 +23,8 @@ public class User {
                 String statusText,
                 String userInfo,
                 String ownerName,
-                Integer ownerAge) {
+                Integer ownerAge,
+                String dogPersonality) {
         this.id = id;
         this.profileImage = profileImage;
         this.dogName = dogName;
@@ -31,6 +33,7 @@ public class User {
         this.userInfo = userInfo;
         this.ownerName = ownerName;
         this.ownerAge = ownerAge;
+        this.dogPersonality = dogPersonality;
         this.location = new GeoPoint(37.7749, -122.4194);
     }
 }

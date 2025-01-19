@@ -20,7 +20,8 @@ public class Database {
                 "Such nice weather to go for a walk!",
                 "I love avatar the last air, bender and sticks. In that order",
                 "Richard",
-                24)
+                24,
+                "Social Butterfly")
         );
         allUsers.put(1, new User(
                 1,
@@ -30,7 +31,8 @@ public class Database {
                 "Such nice weather to go for a walk!",
                 "Friendly and loves cuddles!",
                 "Laura",
-                20)
+                20,
+                "Protective Guardian")
         );
         allUsers.put(2, new User(
                 2,
@@ -40,7 +42,8 @@ public class Database {
                 "Ready to play fetch!",
                 "Energetic and playful.",
                 "Bob",
-                23
+                23,
+                "Brainy Strategist"
                 )
         );
         allUsers.put(3, new User(
@@ -51,7 +54,8 @@ public class Database {
                         "Let's go for a run!",
                         "Loves to explore new places.",
                         "Katharine",
-                        25
+                        25,
+                "Chill Couch Potato"
                 )
         );
     }

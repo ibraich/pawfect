@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +32,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,123 +55,14 @@ fun PreviewCalibrationScreen() {
     CalibrationScreen(rememberNavController())
 }
 
-/*@Composable
-fun CalibrationScreen(navController: NavHostController) {
-    val questionList = Database.listOfQuestions
-
-    var currentQuestionIndex by remember { mutableIntStateOf(0) }
-    var showSubmitButton by remember { mutableStateOf(false) }
-
-    // Main container
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFF4F8))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Back button and title row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.back_arrow),
-                    contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable { navController.navigate("profile_settings_screen") }
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "Answer the quiz questions",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Question number and progress
-            Text(
-                text = "${currentQuestionIndex + 1} / ${questionList.size}",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Question card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFFFE1E7))
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = questionList[currentQuestionIndex].getQuestion(),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Answer buttons
-            questionList[currentQuestionIndex].getOptions().forEach { option ->
-                QuizOptionButton(text = option.getText()) {
-                    if (currentQuestionIndex < questionList.size - 1) {
-                        currentQuestionIndex++
-                    } else {
-                        showSubmitButton = true // show submit button after the last question
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-        }
-
-        // Submit button
-        if (showSubmitButton) {
-            Button(
-                onClick = { navController.navigate("profile_settings_screen") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp)),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-            ) {
-                Text(
-                    text = "Submit quiz",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        }
-    }
-}*/
-
-
 @Composable
 fun CalibrationScreen(navController: NavHostController) {
-    val categorizedQuestions = Database.getCategorizedQuestions() // Fetch categorized questions
+    val categorizedQuestions = Database.getCategorizedQuestions()
     val selectedQuestions = remember { mutableStateListOf<Question>() }
+    val selectedAnswers = remember { mutableStateListOf<Option>() }
     var isQuestionSelectionComplete by remember { mutableStateOf(false) }
-    var currentQuestionIndex by remember { mutableStateOf(0) }
+    var currentQuestionIndex by remember { mutableIntStateOf(0) }
+    var calibratedDogPersonality by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -223,56 +114,100 @@ fun CalibrationScreen(navController: NavHostController) {
                     }
                 }
             }
-        } else {
-            // Show the selected questions one by one
-            if (currentQuestionIndex < selectedQuestions.size) {
-                val question = selectedQuestions[currentQuestionIndex]
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = question.getQuestion(),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center
+        } else if (currentQuestionIndex < selectedQuestions.size) {
+            // Show selected questions one by one
+            val question = selectedQuestions[currentQuestionIndex]
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = question.question,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                question.options.forEach { option ->
+                    QuizOptionButton(
+                        text = option.text,
+                        onClick = {
+                            selectedAnswers.add(option)
+                            currentQuestionIndex++
+                            if (currentQuestionIndex == selectedQuestions.size) {
+                                calibratedDogPersonality = calculateDominantPersonality(selectedAnswers)
+                            }
+                        }
                     )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    question.getOptions().forEach { option ->
-                        QuizOptionButton(
-                            text = option.getText(),
-                            onClick = { currentQuestionIndex++ }
-                        )
-                    }
                 }
-            } else {
-                // Quiz completed
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
                     Text(
-                        text = "Quiz Complete!",
+                        text = "Your dog's dominant personality is: $calibratedDogPersonality",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Green
+                        color = Color.Green,
+                        textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                item {
+                    // Option 1: Accept and Save
                     Button(
-                        onClick = { navController.navigate("profile_settings_screen") },
+                        onClick = {
+                            //TODO
+                            // Save the personality in the database
+                            // Database.updateDogPersonality(calibratedDogPersonality)
+                            navController.navigate("profile_settings_screen")
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
                         Text(
-                            text = "Return to Profile",
+                            text = "Accept",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                item {
+                    // Option 2: Self Recalibrate
+                    SelfCalibrateButton(navController = navController)
+                }
+
+                item {
+                    // Option 3: AI Recalibrate
+                    AiCalibrateButton(navController = navController)
+                }
+
+                item {
+                    // Option 4: Cancel and Return
+                    Button(
+                        onClick = {
+                            calibratedDogPersonality = "Uncalibrated"
+                            navController.navigate("profile_settings_screen")
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF2753))
+                    ) {
+                        Text(
+                            text = "Cancel and Return",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -324,7 +259,6 @@ fun ExpandableCategoryBox(
             )
         }
 
-        // Questions List (Expandable)
         if (expanded) {
             questions.forEach { question ->
                 val isSelected = selectedQuestions.contains(question)
@@ -362,7 +296,7 @@ fun QuestionItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = question.getQuestion(),
+            text = question.question,
             fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
             color = if (isSelected) Color.Black else Color.Gray,
@@ -395,6 +329,22 @@ fun QuizOptionButton(text: String, onClick: () -> Unit) {
             color = Color.Black
         )
     }
+}
+
+
+fun calculateDominantPersonality(selectedAnswers: List<Option>): String {
+    val personalityScores = mutableMapOf<String, Int>()
+
+    // Tally scores for each personality trait
+    for (answer in selectedAnswers) {
+        for (personality in answer.personalities) {
+            personalityScores[personality] = personalityScores.getOrDefault(personality, 0) + 1
+        }
+    }
+
+    // Find the personality with the highest score
+    val dominantPersonality = personalityScores.maxByOrNull { it.value }?.key
+    return dominantPersonality ?: "Undefined Personality"
 }
 
 
