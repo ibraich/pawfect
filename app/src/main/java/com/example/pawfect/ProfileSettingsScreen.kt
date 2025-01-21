@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,13 +21,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-
 import androidx.compose.material3.Icon
-
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +40,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
-
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,7 +47,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.appinterface.R
-
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Preview
 @Composable
@@ -60,9 +60,56 @@ fun PreviewProfileSettingsScreen() {
 
 @Composable
 fun ProfileSettingsScreen(navController: NavHostController) {
+    
+    
+
     val currentUser = Database.getUserById(0)
-    var dogBreed by remember { mutableStateOf(currentUser.dogBreed) }
+
+    //var dogBreed by remember { mutableStateOf(currentUser.dogBreed) }
     var dogPersonality by remember { mutableStateOf(currentUser.dogPersonality) }
+
+
+    var dogName by remember { mutableStateOf("Loading...") }
+    var dogBreed by remember { mutableStateOf("Loading...") }
+    var ownerName by remember { mutableStateOf("Loading...") }
+    var ownerAge by remember { mutableStateOf(0) }
+    var addInfo by remember { mutableStateOf("Fetching user information...") }
+    var userInfo by remember { mutableStateOf("Fetching user information...") }
+    val fs = Firebase.firestore
+    val auth = Firebase.auth
+
+    LaunchedEffect(Unit) {
+        val currentUserUid = auth.currentUser?.uid
+        fs.collection("Users").document(currentUserUid.toString())
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    dogName = document.getString("dogName") ?: "Unknown Dog"
+                    dogBreed = document.getString("dogBreed") ?: "Unknown Breed"
+                    ownerName = document.getString("ownerName") ?: "Unknown Name"
+                    ownerAge = document.getLong("ownerAge")?.toInt() ?: 0
+                    addInfo = document.getString("addInfo") ?: "No additional info"
+                    userInfo = document.getString("userInfo") ?: "No additional info"
+                } else {
+                    dogName = "No User Found"
+                    dogBreed = "No information available"
+                    ownerName = "No information available"
+                    ownerAge = 0
+                    addInfo = "No information available"
+                    userInfo = "No information available"
+                }
+            }
+            .addOnFailureListener {
+                dogName = "Error"
+                dogBreed = "Failed to fetch data"
+                ownerName = "Failed to fetch data"
+                ownerAge = 0
+                addInfo = "Failed to fetch data"
+                userInfo = "Failed to fetch data"
+            }
+    }
+
+
 
     // Scrollable container
     LazyColumn(
@@ -135,14 +182,12 @@ fun ProfileSettingsScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(24.dp))
 
             // Dog's name
-            ProfileInfoField(label = "Dog’s name:", initialValue = currentUser.dogName)
+            ProfileInfoField(label = dogName, initialValue = dogName)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Dog's breed (uses shared state)
-            ProfileInfoField(label = "Your dog’s breed:", initialValue = dogBreed) { newBreed ->
-                dogBreed = newBreed
-            }
+            ProfileInfoField(label = dogBreed, initialValue = dogBreed)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -165,12 +210,12 @@ fun ProfileSettingsScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Owner's name
-            ProfileInfoField(label = "Owner’s name:", initialValue = currentUser.ownerName)
+            ProfileInfoField(label = "Owner’s name:", initialValue = ownerName)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Owner's age
-            ProfileInfoField(label = "Owner’s age:", initialValue = currentUser.ownerAge.toString())
+            ProfileInfoField(label = "Owner’s age:", initialValue = ownerAge.toString())
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -189,18 +234,20 @@ fun ProfileSettingsScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // StatusText field
-            ProfileInfoField(label = "Status:", initialValue = currentUser.statusText)
+            ProfileInfoField(label = "Status:", initialValue = userInfo)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // InfoText field
-            ProfileInfoField(label = "Additional Info:", initialValue = currentUser.userInfo)
+            ProfileInfoField(label = "Additional Info:", initialValue = addInfo)
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            val auth = Firebase.auth
+
             // Logout button
             Button(
-                onClick = { navController.navigate("login_screen") },
+                onClick = { signOut(auth, navController) },
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp)),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF2753))
@@ -272,6 +319,10 @@ fun AiCalibrateButton(navController: NavHostController) {
 fun ProfileInfoField(label: String, initialValue: String, onValueChange: (String) -> Unit = {}) {
     var content by remember { mutableStateOf(initialValue) }
 
+    LaunchedEffect(initialValue) {
+        content = initialValue
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -305,3 +356,7 @@ fun ProfileInfoField(label: String, initialValue: String, onValueChange: (String
 }
 
 
+private fun signOut(auth: FirebaseAuth, navController: NavHostController) {
+    auth.signOut()
+    navController.navigate("login_screen")
+}
