@@ -1,6 +1,5 @@
 package com.example.pawfect
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 
 class MainActivity : ComponentActivity() {
@@ -25,8 +26,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login_screen") {
+    val auth = Firebase.auth
+    val startDestination = if (auth.currentUser != null) "profile_screen" else "login_screen"
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("login_screen") { LoginScreen(navController) }
+        composable("signin_screen") { SignInScreen(navController) }
         composable("profile_screen") { ProfileScreen(navController) }
         composable("friend_list_screen") { FriendListScreen(navController) }
         // Insert activity with map

@@ -20,7 +20,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.appinterface.R
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Preview
 @Composable
@@ -48,6 +55,33 @@ fun PreviewProfileScreen() {
 fun ProfileScreen(navController: NavHostController) {
 
     val currentUser = Database.getUserById(0)
+
+    var dogName by remember { mutableStateOf("Loading...") }
+    var userInfo by remember { mutableStateOf("Fetching user information...") }
+    val fs = Firebase.firestore
+    val auth = Firebase.auth
+
+
+    LaunchedEffect(Unit) {
+        val currentUserUid = auth.currentUser?.uid
+        fs.collection("Users").document(currentUserUid.toString())
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    dogName = document.getString("dogName") ?: "Unknown Dog"
+                    userInfo = document.getString("userInfo") ?: "No additional info"
+                } else {
+                    dogName = "No User Found"
+                    userInfo = "No information available"
+                }
+            }
+            .addOnFailureListener {
+                dogName = "Error"
+                userInfo = "Failed to fetch data"
+            }
+    }
+
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -97,7 +131,7 @@ fun ProfileScreen(navController: NavHostController) {
 
             // Name
             Text(
-                text = currentUser.dogName,
+                text = dogName,
                 fontSize = 45.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -111,7 +145,7 @@ fun ProfileScreen(navController: NavHostController) {
                     .fillMaxWidth(0.8f)
             ) {
                 Text(
-                    text = currentUser.userInfo,
+                    text = userInfo,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
