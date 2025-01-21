@@ -30,8 +30,9 @@ fun MyApp() {
     val startDestination = if (auth.currentUser != null) "profile_screen" else "login_screen"
 
     NavHost(navController = navController, startDestination = startDestination) {
+        composable("registration_first_screen") { RegistrationFirstScreen(navController) }
+        composable("registration_second_screen") { RegistrationSecondScreen(navController) }
         composable("login_screen") { LoginScreen(navController) }
-        composable("signin_screen") { SignInScreen(navController) }
         composable("profile_screen") { ProfileScreen(navController) }
         composable("friend_list_screen") { FriendListScreen(navController) }
         // Insert activity with map
