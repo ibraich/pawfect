@@ -21,7 +21,8 @@ public class Database {
                 "I love avatar the last air, bender and sticks. In that order",
                 "Richard",
                 24,
-                "Social Butterfly")
+                Personality.SOCIAL_BUTTERFLY.name()
+                )
         );
         allUsers.put(1, new User(
                 1,
@@ -32,7 +33,8 @@ public class Database {
                 "Friendly and loves cuddles!",
                 "Laura",
                 20,
-                "Protective Guardian")
+                Personality.PROTECTIVE_GUARDIAN.name()
+                )
         );
         allUsers.put(2, new User(
                 2,
@@ -43,19 +45,19 @@ public class Database {
                 "Energetic and playful.",
                 "Bob",
                 23,
-                "Brainy Strategist"
+                Personality.BRAINY_STRATEGIST.name()
                 )
         );
         allUsers.put(3, new User(
-                        3,
-                        R.drawable.pug,
-                        "Mumu",
-                        "Pug",
-                        "Let's go for a run!",
-                        "Loves to explore new places.",
-                        "Katharine",
-                        25,
-                "Chill Couch Potato"
+                3,
+                R.drawable.pug,
+                "Mumu",
+                "Pug",
+                "Let's go for a run!",
+                "Loves to explore new places.",
+                "Katharine",
+                25,
+                Personality.CHILL_COUCH_POTATO.name()
                 )
         );
     }

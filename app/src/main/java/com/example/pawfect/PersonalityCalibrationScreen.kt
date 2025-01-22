@@ -51,12 +51,12 @@ import com.example.appinterface.R
 
 @Preview
 @Composable
-fun PreviewCalibrationScreen() {
-    CalibrationScreen(rememberNavController())
+fun PreviewPersonalityCalibrationScreen() {
+    PersonalityCalibrationScreen(rememberNavController())
 }
 
 @Composable
-fun CalibrationScreen(navController: NavHostController) {
+fun PersonalityCalibrationScreen(navController: NavHostController) {
     val categorizedQuestions = Database.getCategorizedQuestions()
     val selectedQuestions = remember { mutableStateListOf<Question>() }
     val selectedAnswers = remember { mutableStateListOf<Option>() }
@@ -338,7 +338,7 @@ fun calculateDominantPersonality(selectedAnswers: List<Option>): String {
     // Tally scores for each personality trait
     for (answer in selectedAnswers) {
         for (personality in answer.personalities) {
-            personalityScores[personality] = personalityScores.getOrDefault(personality, 0) + 1
+            personalityScores[personality.name] = personalityScores.getOrDefault(personality.name, 0) + 1
         }
     }
 
@@ -346,5 +346,4 @@ fun calculateDominantPersonality(selectedAnswers: List<Option>): String {
     val dominantPersonality = personalityScores.maxByOrNull { it.value }?.key
     return dominantPersonality ?: "Undefined Personality"
 }
-
 

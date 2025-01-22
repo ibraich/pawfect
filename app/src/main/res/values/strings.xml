@@ -6,6 +6,20 @@ The coordinates should be at least 100 meters apart from each other and from the
 Return ONLY the list of 10 coordinates, with no additional text.
 My coordinates: </string>
 
+    <string name="gemini_dog_personality_query">
+        Provide a one-word personality prediction from the options below based on the given dog information and picture.
+
+        Dog Info:
+        Name: %1$s
+        Breed: %2$s
+        Gender: %3$s
+        Age: %4$s
+        Self Bio: %5$s
+        Status: %6$s
+
+        Personality Options: %7$s
+    </string>
+
     <string-array name="breeds_array">
         <item>Affenpinscher</item>
         <item>Afghan Hound</item>

@@ -71,12 +71,12 @@ fun MyApp() {
             ProfileSettingsScreen(navController)
         }
 
-        composable("calibration_screen") {
-            CalibrationScreen(navController)
+        composable("calibrate_personality_screen") {
+            PersonalityCalibrationScreen(navController)
         }
 
-        composable("ai_calibration_screen") {
-            AICalibrationScreen(navController)
+        composable("ai_calibrate_personality_screen") {
+            AIPersonalityCalibrationScreen(navController)
         }
 
         composable("routes_screen") {

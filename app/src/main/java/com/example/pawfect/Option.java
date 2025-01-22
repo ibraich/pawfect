@@ -8,14 +8,14 @@ import java.util.List;
 public class Option {
 
     private String text;
-    private List<String> personalities;
+    private List<Personality> personalities;
 
     // Default constructor for JSON parsing
     public Option() {
     }
 
     // Parameterized constructor
-    public Option(String text, List<String> personalities) {
+    public Option(String text, List<Personality> personalities) {
         this.text = text;
         this.personalities = personalities;
     }
@@ -29,11 +29,11 @@ public class Option {
         this.text = text;
     }
 
-    public List<String> getPersonalities() {
+    public List<Personality> getPersonalities() {
         return personalities;
     }
 
-    public void setPersonalities(List<String> personalities) {
+    public void setPersonalities(List<Personality> personalities) {
         this.personalities = personalities;
     }
 

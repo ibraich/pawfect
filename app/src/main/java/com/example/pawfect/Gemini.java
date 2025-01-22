@@ -2,6 +2,7 @@ package com.example.pawfect;
 
 import static android.content.ContentValues.TAG;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.google.ai.client.generativeai.GenerativeModel;
@@ -17,6 +18,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 public class Gemini {
@@ -34,7 +36,7 @@ public class Gemini {
 
         try {
             GenerativeModel gm = new GenerativeModel(
-                    "gemini-pro",           // Model name
+                    "gemini-1.5-pro",           // Model name
                     api_key,                // API key
                     generationConfig,       // Configuration settings
                     Collections.singletonList(harassmentSafety) // Safety settings
@@ -78,4 +80,41 @@ public class Gemini {
         }, executor);
 
     }
+
+    public void getResponseForImages(String query, List<Bitmap> imageFiles, ResponseCallback callback) {
+        GenerativeModelFutures model = getModel();
+
+        Content.Builder contentBuilder = new Content.Builder().addText(query);
+
+        for (Bitmap file : imageFiles) {
+            if (file != null) {
+                contentBuilder.addImage(file);
+            }
+        }
+
+        Content content = contentBuilder.build();
+        Executor executor = Runnable::run;
+
+        // Generate response
+        assert model != null;
+        ListenableFuture<GenerateContentResponse> response = model.generateContent(content);
+        Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
+            @Override
+            public void onSuccess(GenerateContentResponse result) {
+                Log.d(TAG, "Response onSuccess: " + result.getText());
+
+                String resultText = result.getText();
+                callback.onResponse(resultText);
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                Log.d(TAG, "Response onFailure.");
+
+                throwable.printStackTrace();
+                callback.onError(throwable);
+            }
+        }, executor);
+    }
+
 }
