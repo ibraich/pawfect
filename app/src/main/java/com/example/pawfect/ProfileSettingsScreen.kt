@@ -268,14 +268,15 @@ fun ProfileSettingsScreen(navController: NavHostController) {
 @Composable
 fun SelfCalibrateButton(navController: NavHostController) {
     Button(
-        onClick = { navController.navigate("calibration_screen") },
+        onClick = { navController.navigate("calibrate_personality_screen") },
+        //onClick = { navController.navigate("drag_and_drop_question_screen") },
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp)),
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
     ) {
         Text(
-            text = "Self Calibrate",
+            text = "Self Calibrate Personality",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
@@ -286,7 +287,7 @@ fun SelfCalibrateButton(navController: NavHostController) {
 @Composable
 fun AiCalibrateButton(navController: NavHostController) {
     Button(
-        onClick = { navController.navigate("ai_calibration_screen") },
+        onClick = { navController.navigate("ai_calibrate_personality_screen") },
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp)),
@@ -304,7 +305,7 @@ fun AiCalibrateButton(navController: NavHostController) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "AI Calibrate",
+                text = "AI Calibrate Personality",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black

@@ -8,29 +8,29 @@
         {
           "text": "Jumps excitedly and showers you with kisses",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Wags tail and waits patiently for attention",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Barks happily and brings you a toy",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         },
         {
           "text": "Seems indifferent or takes their time greeting you",
           "personalities": [
-            "Chill Couch Potato",
-            "Independent Lone Wolf"
+            "CHILL_COUCH_POTATO",
+            "INDEPENDENT_LONE_WOLF"
           ]
         }
       ]
@@ -43,29 +43,29 @@
         {
           "text": "Curled up in a ball",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Stretched out on their back",
           "personalities": [
-            "Adventurous Explorer",
-            "Social Butterfly"
+            "ADVENTUROUS_EXPLORER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "On their side, paws in the air",
           "personalities": [
-            "Chill Couch Potato",
-            "Playful Fetcher"
+            "CHILL_COUCH_POTATO",
+            "PLAYFUL_FETCHER"
           ]
         },
         {
           "text": "Under the covers or in a tight space",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         }
       ]
@@ -78,28 +78,27 @@
         {
           "text": "Overly friendly and eager to say hello to everyone",
           "personalities": [
-            "Social Butterfly"
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Friendly after a brief period of observation",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Wary or hesitant at first, but warms up eventually",
           "personalities": [
-            "Chill Couch Potato",
-            "Protective Guardian",
-            "Adventurous Explorer"
+            "PROTECTIVE_GUARDIAN",
+            "ADVENTUROUS_EXPLORER"
           ]
         },
         {
           "text": "Keeps their distance or avoids the new people",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         }
       ]
@@ -112,29 +111,29 @@
         {
           "text": "\"Let's play!\"",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "\"Food, please!\"",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "\"I love you!\"",
           "personalities": [
-            "Chill Couch Potato",
-            "Social Butterfly"
+            "CHILL_COUCH_POTATO",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "\"Leave me alone.\"",
           "personalities": [
-            "Independent Lone Wolf",
-            "Brainy Strategist"
+            "INDEPENDENT_LONE_WOLF",
+            "BRAINY_STRATEGIST"
           ]
         }
       ]
@@ -147,28 +146,28 @@
         {
           "text": "Pulls on the leash and tries to greet them excitedly",
           "personalities": [
-            "Adventurous Explorer",
-            "Social Butterfly"
+            "ADVENTUROUS_EXPLORER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Observes them with interest but remains calm",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Barks or lunges at them",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         },
         {
           "text": "Tries to avoid or ignore them",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         }
       ]
@@ -181,29 +180,29 @@
         {
           "text": "Nudges you with their nose or paw",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Sits and stares at you intently",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Barks or whines until you acknowledge them",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Brings you a toy or their leash",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         }
       ]
@@ -216,27 +215,27 @@
         {
           "text": "Sits calmly and enjoys the view",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Gets anxious or carsick",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         },
         {
           "text": "Barks excitedly or tries to climb into the front seat",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Sleeps the whole way",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         }
       ]
@@ -249,27 +248,27 @@
         {
           "text": "Anything meaty or chewy",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Crunchy biscuits or cookies",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         },
         {
           "text": "Fruits and vegetables",
           "personalities": [
-            "Adventurous Explorer",
-            "Brainy Strategist"
+            "ADVENTUROUS_EXPLORER",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Peanut butter or cheese",
           "personalities": [
-            "Playful Fetcher"
+            "PLAYFUL_FETCHER"
           ]
         }
       ]
@@ -282,27 +281,27 @@
         {
           "text": "Loves it and jumps right in",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         },
         {
           "text": "Tolerates it, but isn't thrilled",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Tries to escape or hide",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         },
         {
           "text": "Actively resists and makes it a challenge",
           "personalities": [
-            "Playful Fetcher"
+            "PLAYFUL_FETCHER"
           ]
         }
       ]
@@ -315,29 +314,29 @@
         {
           "text": "\"Walking on Sunshine\"",
           "personalities": [
-            "Adventurous Explorer",
-            "Social Butterfly"
+            "ADVENTUROUS_EXPLORER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "\"Who Let the Dogs Out?\"",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "\"Hakuna Matata\"",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "\"The Imperial March\" (Darth Vader's theme)",
           "personalities": [
-            "Adventurous Explorer",
-            "Brainy Strategist"
+            "ADVENTUROUS_EXPLORER",
+            "BRAINY_STRATEGIST"
           ]
         }
       ]
@@ -350,28 +349,28 @@
         {
           "text": "Curious and wants to play",
           "personalities": [
-            "Adventurous Explorer",
-            "Social Butterfly"
+            "ADVENTUROUS_EXPLORER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Cautious but friendly",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Chases them or tries to catch them",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         },
         {
           "text": "Ignores them completely",
           "personalities": [
-            "Chill Couch Potato"
+            "CHILL_COUCH_POTATO"
           ]
         }
       ]
@@ -384,29 +383,29 @@
         {
           "text": "Belly rubs!",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Behind the ears",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Under the chin",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Base of the tail",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         }
       ]
@@ -419,30 +418,29 @@
         {
           "text": "Goofy and playful",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Loyal and protective",
           "personalities": [
-            "Chill Couch Potato",
-            "Protective Guardian",
-            "Brainy Strategist"
+            "PROTECTIVE_GUARDIAN",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Independent and aloof",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Cuddly and affectionate",
           "personalities": [
-            "Chill Couch Potato",
-            "Social Butterfly"
+            "CHILL_COUCH_POTATO",
+            "SOCIAL_BUTTERFLY"
           ]
         }
       ]
@@ -455,30 +453,29 @@
         {
           "text": "Loud noises",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Being alone",
           "personalities": [
-            "Chill Couch Potato",
-            "Independent Lone Wolf",
-            "Social Butterfly"
+            "CHILL_COUCH_POTATO",
+            "INDEPENDENT_LONE_WOLF"
           ]
         },
         {
           "text": "Veterinarian visits",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Vacuum cleaners",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         }
       ]
@@ -491,29 +488,29 @@
         {
           "text": "Licking your face",
           "personalities": [
-            "Playful Fetcher",
-            "Social Butterfly"
+            "PLAYFUL_FETCHER",
+            "SOCIAL_BUTTERFLY"
           ]
         },
         {
           "text": "Wagging their tail and leaning against you",
           "personalities": [
-            "Chill Couch Potato",
-            "Brainy Strategist"
+            "CHILL_COUCH_POTATO",
+            "BRAINY_STRATEGIST"
           ]
         },
         {
           "text": "Bringing you gifts (toys, socks, etc.)",
           "personalities": [
-            "Adventurous Explorer",
-            "Playful Fetcher"
+            "ADVENTUROUS_EXPLORER",
+            "PLAYFUL_FETCHER"
           ]
         },
         {
           "text": "Following you everywhere you go",
           "personalities": [
-            "Chill Couch Potato",
-            "Social Butterfly"
+            "CHILL_COUCH_POTATO",
+            "SOCIAL_BUTTERFLY"
           ]
         }
       ]
