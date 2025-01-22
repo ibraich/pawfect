@@ -250,10 +250,6 @@ fun RegistrationSecondScreen(navController: NavHostController) {
 
         item {
             // Sign Up Button
-<<<<<<< HEAD
-            Button(
-                onClick = { /* TODO  Redirect to the profile*/ },
-=======
             var errorMessage by remember { mutableStateOf<String?>(null) }
             Button(
                 onClick = { /* TODO  Redirect to the profile*/
@@ -271,7 +267,7 @@ fun RegistrationSecondScreen(navController: NavHostController) {
                         ) { errorMessage = it }
                     }
                 },
->>>>>>> 8426cfe (Save user data from second_registration_screen in db)
+
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .clip(RoundedCornerShape(16.dp))
@@ -320,8 +316,6 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit) {
         )
     }
 }
-<<<<<<< HEAD
-=======
 
 private fun inputData(auth: FirebaseAuth, dogName: String, dogAge: String, dogBreed: String, ownerName: String, ownerAge: String, navController: NavHostController, setError: (String?) -> Unit) {
     val currentUserUid = auth.currentUser?.uid
@@ -346,5 +340,3 @@ private fun inputData(auth: FirebaseAuth, dogName: String, dogAge: String, dogBr
             }
     }
 }
-
->>>>>>> 8426cfe (Save user data from second_registration_screen in db)
