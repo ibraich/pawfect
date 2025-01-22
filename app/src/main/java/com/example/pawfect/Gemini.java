@@ -36,7 +36,7 @@ public class Gemini {
 
         try {
             GenerativeModel gm = new GenerativeModel(
-                    "gemini-1.5-pro",           // Model name
+                    "gemini-pro",           // Model name
                     api_key,                // API key
                     generationConfig,       // Configuration settings
                     Collections.singletonList(harassmentSafety) // Safety settings
@@ -81,8 +81,40 @@ public class Gemini {
 
     }
 
+    private GenerativeModelFutures getProModel() {
+        String api_key = "AIzaSyDm27cC05NwVaRfZXCvfam1Ci65h80iVos";
+        SafetySetting harassmentSafety = new SafetySetting(HarmCategory.HARASSMENT,
+                BlockThreshold.LOW_AND_ABOVE);
+
+        GenerationConfig.Builder configBuilder = new GenerationConfig.Builder();
+        configBuilder.temperature = 0.9f;
+        configBuilder.topK = 16;
+        configBuilder.topP = 0.1f;
+        GenerationConfig generationConfig = configBuilder.build();
+
+        try {
+            GenerativeModel gm = new GenerativeModel(
+                    "gemini-1.5-pro",           // Model name
+                    api_key,                // API key
+                    generationConfig,       // Configuration settings
+                    Collections.singletonList(harassmentSafety) // Safety settings
+            );
+
+            Log.d(TAG, "Gemini model initialized successfully.");
+            return GenerativeModelFutures.from(gm);
+
+        } catch (Exception e) {
+            // Catch any exception during initialization or interaction with the model
+            Log.e(TAG, "Error initializing or using Gemini model: ", e);
+        }
+
+
+        return null;
+    }
+
+
     public void getResponseForImages(String query, List<Bitmap> imageFiles, ResponseCallback callback) {
-        GenerativeModelFutures model = getModel();
+        GenerativeModelFutures model = getProModel();
 
         Content.Builder contentBuilder = new Content.Builder().addText(query);
 
