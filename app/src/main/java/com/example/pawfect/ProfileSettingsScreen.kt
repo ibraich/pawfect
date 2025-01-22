@@ -87,7 +87,7 @@ fun ProfileSettingsScreen(navController: NavHostController) {
                     dogName = document.getString("dogName") ?: "Unknown Dog"
                     dogBreed = document.getString("dogBreed") ?: "Unknown Breed"
                     ownerName = document.getString("ownerName") ?: "Unknown Name"
-                    ownerAge = document.getLong("ownerAge")?.toInt() ?: 0
+                    ownerAge = document.getString("ownerAge")?.toInt() ?: 0
                     addInfo = document.getString("addInfo") ?: "No additional info"
                     userInfo = document.getString("userInfo") ?: "No additional info"
                 } else {

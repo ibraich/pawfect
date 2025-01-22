@@ -196,20 +196,14 @@ private fun signUp(auth: FirebaseAuth, email: String, password: String, navContr
                 val userId = auth.currentUser?.uid
                 userId?.let { uid ->
                     val user = hashMapOf(
-                        "userName" to uid,
                         "userInfo" to uid
                     )
                     val db = Firebase.firestore
                     db.collection("Users")
                         .document(uid)
-                        .get()
+                        .set(user)
                         .addOnSuccessListener { document ->
-                            if (document.exists()) {
-                                /* TODO second registration screen should be added*/
-                                navController.navigate("profile_screen")
-                            } else {
-                                setError("User data not found.")
-                            }
+                            navController.navigate("registration_second_screen")
                         }
                         .addOnFailureListener {
                             setError("Failed to retrieve user data.")
