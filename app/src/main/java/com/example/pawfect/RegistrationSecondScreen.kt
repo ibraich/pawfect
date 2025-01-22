@@ -1,5 +1,9 @@
 package com.example.pawfect
 
+
+import android.R.attr.password
+import android.util.Log
+import android.util.Log.e
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -47,6 +51,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import com.example.appinterface.R
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
+
 
 @Preview
 @Composable
@@ -56,6 +66,8 @@ fun PreviewRegistrationSecondScreen() {
 
 @Composable
 fun RegistrationSecondScreen(navController: NavHostController) {
+
+    val auth = Firebase.auth
     var dogName by remember { mutableStateOf("") }
     var dogAge by remember { mutableStateOf("") }
     var dogBreed by remember { mutableStateOf("") }
@@ -238,8 +250,28 @@ fun RegistrationSecondScreen(navController: NavHostController) {
 
         item {
             // Sign Up Button
+<<<<<<< HEAD
             Button(
                 onClick = { /* TODO  Redirect to the profile*/ },
+=======
+            var errorMessage by remember { mutableStateOf<String?>(null) }
+            Button(
+                onClick = { /* TODO  Redirect to the profile*/
+                    if (dogName.isEmpty() || dogAge.isEmpty()|| dogBreed.isEmpty()|| ownerName.isEmpty()|| ownerAge.isEmpty()) {
+                        errorMessage = "All fields are required"
+                    } else {
+                        inputData(
+                            auth,
+                            dogName,
+                            dogAge,
+                            dogBreed,
+                            ownerName,
+                            ownerAge,
+                            navController
+                        ) { errorMessage = it }
+                    }
+                },
+>>>>>>> 8426cfe (Save user data from second_registration_screen in db)
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .clip(RoundedCornerShape(16.dp))
@@ -288,3 +320,31 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit) {
         )
     }
 }
+<<<<<<< HEAD
+=======
+
+private fun inputData(auth: FirebaseAuth, dogName: String, dogAge: String, dogBreed: String, ownerName: String, ownerAge: String, navController: NavHostController, setError: (String?) -> Unit) {
+    val currentUserUid = auth.currentUser?.uid
+    val userId = auth.currentUser?.uid
+    userId?.let { uid ->
+        val user = hashMapOf(
+            "dogName" to dogName,
+            "dogAge" to dogAge,
+            "dogBreed" to dogBreed,
+            "ownerName" to ownerName,
+            "ownerAge" to ownerAge
+        )
+        val db = Firebase.firestore
+        db.collection("Users")
+            .document(uid)
+            .set(user)
+            .addOnSuccessListener { document ->
+                navController.navigate("profile_screen")
+            }
+            .addOnFailureListener {
+                setError("Failed to retrieve user data.")
+            }
+    }
+}
+
+>>>>>>> 8426cfe (Save user data from second_registration_screen in db)
