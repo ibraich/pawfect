@@ -1,5 +1,6 @@
 package com.example.pawfect
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -17,12 +18,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,6 +48,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.appinterface.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import androidx.compose.ui.text.style.TextAlign
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+
 
 @Preview
 @Composable
@@ -53,171 +63,218 @@ fun PreviewMatchScreen() {
 
 @Composable
 fun MatchScreen(navController: NavHostController) {
+    val userData = remember { mutableStateListOf<UserFetch>() }
+    val filteredMatches = remember { mutableStateListOf<Pair<UserFetch, Double>>() }
+    val firestore = Firebase.firestore
+    val auth = Firebase.auth
+    val seenUserIds = remember { mutableStateListOf<String>() }
+    var swipesRemaining by remember { mutableStateOf(0) }
 
-    val userData = mutableListOf<User>()
+    LaunchedEffect(Unit) {
+        val currentUserUid = auth.currentUser?.uid
 
-    Database.getUserFriends(0).forEach{ friendId ->
-        userData.add(Database.getUserById(friendId))
+        if (currentUserUid != null) {
+            // Listen for changes in HaveSeen collection
+            firestore.collection("HaveSeen")
+                .document(currentUserUid)
+                .addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        Log.e("MatchScreen", "Error listening to HaveSeen", e)
+                        return@addSnapshotListener
+                    }
+
+                    val seenIds = snapshot?.get("seen") as? List<String> ?: emptyList()
+                    seenUserIds.clear()
+                    seenUserIds.addAll(seenIds)
+
+                    // Fetch all users whenever HaveSeen changes
+                    fetchUsers(currentUserUid, seenUserIds, firestore, filteredMatches) {
+                        swipesRemaining = it
+                    }
+                }
+        } else {
+            Log.e("MatchScreen", "No logged-in user found")
+        }
     }
 
+    // Display users or loading state
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFFFFF4F8) // Background color
+    ) {
+        if (swipesRemaining > 0 && filteredMatches.isNotEmpty()) {
+            DisplayUserCards(
+                userData = filteredMatches.map { it.first },
+                navController = navController,
+                onSwipe = { swipesRemaining-- } // Decrement swipesRemaining on each swipe
+            )
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "No more matches available", fontSize = 20.sp, color = Color.Gray)
+            }
+        }
+    }
+}
+
+private fun fetchUsers(
+    currentUserUid: String,
+    seenUserIds: List<String>,
+    firestore: FirebaseFirestore,
+    filteredMatches: MutableList<Pair<UserFetch, Double>>,
+    onFetched: (Int) -> Unit
+) {
+    firestore.collection("Users").get()
+        .addOnSuccessListener { documents ->
+            val totalUsers = documents.size()
+            val currentUser = documents.firstOrNull { it.id == currentUserUid }
+                ?.toObject(UserFetch::class.java)
+                ?.copy(id = currentUserUid)
+
+            if (currentUser != null) {
+                val candidates = documents.mapNotNull { document ->
+                    if (document.id != currentUserUid && document.id !in seenUserIds) {
+                        document.toObject(UserFetch::class.java).copy(id = document.id)
+                    } else null
+                }
+
+                // Use the utility function to filter and sort matches
+                val matches = filterAndSortMatches(currentUser, candidates)
+
+                // Update the filteredMatches list
+                filteredMatches.clear()
+                filteredMatches.addAll(matches)
+
+                // Update swipes remaining
+                onFetched(totalUsers - seenUserIds.size)
+            }
+        }
+        .addOnFailureListener { exception ->
+            Log.e("MatchScreen", "Error fetching users", exception)
+        }
+}
+
+@Composable
+fun DisplayUserCards(
+    userData: List<UserFetch>,
+    navController: NavHostController,
+    onSwipe: () -> Unit // Callback to handle swipe action
+) {
     var currentUserIndex by remember { mutableStateOf(0) }
 
-    // Manage animation offset
-    var offsetY by remember { mutableStateOf(0f) }
-    val animatedOffsetY by animateFloatAsState(targetValue = offsetY)
-
-    var overlayColor by remember { mutableStateOf(Color.Transparent) }
-    val animatedColor by animateColorAsState(targetValue = overlayColor)
-
-    val coroutineScope = rememberCoroutineScope()
+    if (currentUserIndex >= userData.size) currentUserIndex = 0
+    val currentUser = userData[currentUserIndex]
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFFFF4F8)
+        color = Color(0xFFFFF4F8) // Background color matching ProfileScreen
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top navigation
-            Row(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Profile Image
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.Start
+                    .size(350.dp)
+                    .background(color = Color.LightGray, shape = CircleShape),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.back_arrow),
-                    contentDescription = "Back",
-                    tint = Color.Black,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable(indication = null,
-                            interactionSource = remember { MutableInteractionSource() })
-                        { navController.navigate("profile_screen") }
+                Text(
+                    text = "Image Placeholder", // Replace with image loader like Coil
+                    color = Color.Gray,
+                    fontSize = 16.sp
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Animated user card
+            // Dog Name
+            Text(
+                text = currentUser.dogName, // Dog name
+                fontSize = 45.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            // Dog Info
+            Text(
+                text = "Age: ${currentUser.dogAge.toSafeInt()}", // Dog age
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Additional Info
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .padding(16.dp)
-                    .offset(y = animatedOffsetY.dp),
+                    .background(color = Color(0xFFFFD1DC), shape = RoundedCornerShape(10.dp))
+                    .fillMaxWidth(0.8f),
                 contentAlignment = Alignment.Center
             ) {
-                val currentUser = userData[currentUserIndex]
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = currentUser.profileImage),
-                        contentDescription = "Profile Image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(350.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = currentUser.dogName,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .background(
-                                color = Color(0xFFFFD1DC),
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .fillMaxWidth(0.8f)
-                    ) {
-                        Text(
-                            text = currentUser.statusText,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black,
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    }
-                }
+                Text(
+                    text = currentUser.dogBreed, // Dog info
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(46.dp))
 
-            // Action buttons
+            // Action Buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 // Dislike Button
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_cross_match),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_cross_match),
                     contentDescription = "Dislike",
                     tint = Color.Red,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clickable( indication = null,
-                            interactionSource = remember { MutableInteractionSource() })
-                        {
-
-                            coroutineScope.launch {
-                                overlayColor = Color(0x80FF0000)
-
-                                offsetY = 300f
-                                delay(300)
-                                currentUserIndex =
-                                    (currentUserIndex + 1) % userData.size
-                                offsetY = -300f
-                                delay(100)
-                                offsetY = 0f
-
-                                overlayColor = Color.Transparent
+                    modifier = Modifier.size(64.dp)
+                        .clickable {
+                            val currentUserId = Firebase.auth.currentUser?.uid
+                            val matchedUserId = userData[currentUserIndex].id
+                            if (currentUserId != null && matchedUserId.isNotEmpty()) {
+                                addToHaveSeen(currentUserId, matchedUserId)
+                                onSwipe()
+                                currentUserIndex = (currentUserIndex + 1) % userData.size
                             }
                         }
                 )
 
-                // Like button
+                // Like Button
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_heart_match),
+                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_heart_match),
                     contentDescription = "Like",
                     tint = Color.Green,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clickable( indication = null,
-                            interactionSource = remember { MutableInteractionSource() })
-                        {
-                            overlayColor = Color(0x8032CD32)
-
-                            coroutineScope.launch {
-                                offsetY = 300f
-                                delay(300)
-                                currentUserIndex =
-                                    (currentUserIndex + 1) % userData.size
-                                offsetY = -300f
-                                delay(100)
-                                offsetY = 0f
-
-                                overlayColor = Color.Transparent
+                    modifier = Modifier.size(64.dp)
+                        .clickable {
+                            val currentUserId = Firebase.auth.currentUser?.uid
+                            val matchedUserId = userData[currentUserIndex].id
+                            if (currentUserId != null && matchedUserId.isNotEmpty()) {
+                                handleMatch(currentUserId, matchedUserId)
+                                addToHaveSeen(currentUserId, matchedUserId)
+                                onSwipe()
+                                currentUserIndex = (currentUserIndex + 1) % userData.size
                             }
                         }
                 )
             }
         }
-
-        // Overlay
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(animatedColor)
-        )
     }
 }
+
+
