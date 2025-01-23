@@ -23,8 +23,9 @@ import java.util.concurrent.Executor;
 
 public class Gemini {
 
+    String api_key = "AIzaSyDm27cC05NwVaRfZXCvfam1Ci65h80iVos";
+
     private GenerativeModelFutures getModel() {
-        String api_key = "AIzaSyDm27cC05NwVaRfZXCvfam1Ci65h80iVos";
         SafetySetting harassmentSafety = new SafetySetting(HarmCategory.HARASSMENT,
                 BlockThreshold.LOW_AND_ABOVE);
 
@@ -82,7 +83,6 @@ public class Gemini {
     }
 
     private GenerativeModelFutures getProModel() {
-        String api_key = "AIzaSyDm27cC05NwVaRfZXCvfam1Ci65h80iVos";
         SafetySetting harassmentSafety = new SafetySetting(HarmCategory.HARASSMENT,
                 BlockThreshold.LOW_AND_ABOVE);
 
