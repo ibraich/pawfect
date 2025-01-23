@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,8 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.example.appinterface.R
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 
 @Preview
 @Composable
@@ -57,10 +60,11 @@ fun AIPreviewCalibrationScreen() {
 @Composable
 fun AIPersonalityCalibrationScreen(navController: NavHostController) {
 
-    val currentUser = Database.getUserById(0)
+    val auth = Firebase.auth
+    val userId = auth.currentUser?.uid
     val context = LocalContext.current
 
-    var calibratedDogPersonality by remember { mutableStateOf<String?>(null) }
+    var calibratedDogPersonality by rememberSaveable { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
     Column(
@@ -100,26 +104,50 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.drawable.dog_loading_thinking) // reference to your GIF resource
+                        .data(R.drawable.dog_loading_thinking)
                         .build(),
                     contentDescription = "Loading Animation",
-                    modifier = Modifier.size(100.dp) // adjust size as needed
+                    modifier = Modifier.size(100.dp)
                 )
             }
-        } else if (calibratedDogPersonality == null) {
+        } else if (calibratedDogPersonality.isEmpty()) {
             isLoading = true
             LaunchedEffect(Unit) {
                 try {
                     val model = Gemini()
 
+                    var dogName: String = "Unknown Dog"
+                    var dogBreed: String = "Unknown Breed"
+                    var dogGender: String = "Unknown Gender"
+                    var dogAge: Int = 0
+                    var userInfo: String = "No User info"
+                    var statusText: String = "No Status Text"
+
+                    FirestoreHelper.fetchDocumentAsMap(
+                        collectionName = "Users",
+                        documentId = userId.toString(),
+                        onSuccess = { data ->
+                            // Access fields dynamically from the map
+                            dogName = data["dogName"] as? String ?: "Unknown Dog"
+                            dogBreed = data["dogBreed"] as? String ?: "Unknown Breed"
+                            dogGender = data["dogGender"] as? String ?: "Unknown Gender"
+                            dogAge = (data["dogAge"] as? Number)?.toInt() ?: 0
+                            userInfo = data["userInfo"] as? String ?: "No User info"
+                            statusText = data["statusText"] as? String ?: "No Status Text"
+                        },
+                        onFailure = { errorMessage ->
+                            println("Failed to fetch document: $errorMessage")
+                        }
+                    )
+
                     val query = String.format(
                         context.getString(R.string.gemini_dog_personality_query),
-                        Database.getAllUsers()[0].dogName,  // %1$s
-                        Database.getAllUsers()[0].dogBreed, // %2$s
-                        "Male",               // %3$s (Gender, hardcoded for now)
-                        "4 years",            // %4$s (Age, hardcoded for now)
-                        Database.getAllUsers()[0].userInfo, // %5$s
-                        Database.getAllUsers()[0].statusText, // %6$s
+                        dogName,
+                        dogBreed,
+                        dogGender,
+                        dogAge.toString(),
+                        userInfo,
+                        statusText,
                         Personality.getAllPersonalities()
                     )
 
@@ -136,7 +164,6 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
 
                         override fun onError(throwable: Throwable) {
                             throwable.printStackTrace()
-                            calibratedDogPersonality = "Uncalibrated"
                             isLoading = false
                         }
                     })
@@ -156,7 +183,7 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
                     withStyle(
                         style = SpanStyle(color = Color.Blue),
                     ) {
-                        append(calibratedDogPersonality ?: "Uncalibrated")
+                        append(calibratedDogPersonality)
                     }
                 },
                 fontSize = 30.sp,
@@ -179,9 +206,11 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
                     // Option 1: Accept and Save
                     Button(
                         onClick = {
-                            // Save the personality in the database
-                            //Database.updateDogPersonality(calibratedDogPersonality ?: "")
-                            navController.navigate("profile_settings_screen")
+                            FirestoreHelper.updateFields(collectionName = "Users", documentId = userId.toString(),
+                                updates = mapOf("dogPersonality" to calibratedDogPersonality), navController.context,
+                                onSuccessMessage = "Dog personality updated successfully!",
+                                onNavigate = { navController.navigate("profile_settings_screen") }
+                            )
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -211,7 +240,6 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
                     // Option 4: Cancel and Return
                     Button(
                         onClick = {
-                            calibratedDogPersonality = "Uncalibrated"
                             navController.navigate("profile_settings_screen")
                         },
                         modifier = Modifier

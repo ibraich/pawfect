@@ -66,7 +66,7 @@ fun ProfileSettingsScreen(navController: NavHostController) {
     val currentUser = Database.getUserById(0)
 
     //var dogBreed by remember { mutableStateOf(currentUser.dogBreed) }
-    var dogPersonality by remember { mutableStateOf(currentUser.dogPersonality) }
+
 
 
     var dogName by remember { mutableStateOf("Loading...") }
@@ -75,6 +75,7 @@ fun ProfileSettingsScreen(navController: NavHostController) {
     var ownerAge by remember { mutableStateOf(0) }
     var addInfo by remember { mutableStateOf("Fetching user information...") }
     var userInfo by remember { mutableStateOf("Fetching user information...") }
+    var dogPersonality by remember { mutableStateOf("Fetching dog personality...") }
     val fs = Firebase.firestore
     val auth = Firebase.auth
 
@@ -90,6 +91,7 @@ fun ProfileSettingsScreen(navController: NavHostController) {
                     ownerAge = document.getString("ownerAge")?.toInt() ?: 0
                     addInfo = document.getString("addInfo") ?: "No additional info"
                     userInfo = document.getString("userInfo") ?: "No additional info"
+                    dogPersonality = document.getString("dogPersonality") ?: "Unknown Personality"
                 } else {
                     dogName = "No User Found"
                     dogBreed = "No information available"

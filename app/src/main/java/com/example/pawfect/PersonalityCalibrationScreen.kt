@@ -1,5 +1,6 @@
 package com.example.pawfect
 
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -42,7 +43,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +51,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.appinterface.R
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 
 @Preview
 @Composable
@@ -66,6 +69,10 @@ fun PersonalityCalibrationScreen(navController: NavHostController) {
     var isQuestionSelectionComplete by remember { mutableStateOf(false) }
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
     var calibratedDogPersonality by rememberSaveable { mutableStateOf("") }
+
+    val auth = Firebase.auth
+    val userId = auth.currentUser?.uid
+
 
     Column(
         modifier = Modifier
@@ -178,10 +185,11 @@ fun PersonalityCalibrationScreen(navController: NavHostController) {
                     // Option 1: Accept and Save
                     Button(
                         onClick = {
-                            //TODO
-                            // Save the personality in the database
-                            // Database.updateDogPersonality(calibratedDogPersonality)
-                            navController.navigate("profile_settings_screen")
+                            FirestoreHelper.updateFields(collectionName = "Users", documentId = userId.toString(),
+                                updates = mapOf("dogPersonality" to calibratedDogPersonality), navController.context,
+                                onSuccessMessage = "Dog personality updated successfully!",
+                                onNavigate = { navController.navigate("profile_settings_screen") }
+                            )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                     ) {
@@ -208,7 +216,6 @@ fun PersonalityCalibrationScreen(navController: NavHostController) {
                     // Option 4: Cancel and Return
                     Button(
                         onClick = {
-                            calibratedDogPersonality = "Uncalibrated"
                             navController.navigate("profile_settings_screen")
                         },
                         modifier = Modifier
@@ -354,6 +361,6 @@ fun calculateDominantPersonality(selectedAnswers: List<Option>): String {
 
     // Find the personality with the highest score
     val dominantPersonality = personalityScores.maxByOrNull { it.value }?.key
-    return dominantPersonality ?: "Undefined Personality"
+    return dominantPersonality ?: "Unknown Personality"
 }
 
