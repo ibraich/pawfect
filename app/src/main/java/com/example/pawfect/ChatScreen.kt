@@ -54,12 +54,12 @@ import java.util.Locale
 @Preview
 @Composable
 fun PreviewChatScreen() {
-    ChatScreen(rememberNavController(), 1)
+    ChatScreen(rememberNavController(), "1")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(navController: NavHostController, friendId: Int) {
+fun ChatScreen(navController: NavHostController, friendId: String) {
     val friend = Database.getUserById(friendId)
     val messages = remember { mutableStateListOf<Message>().apply {
         addAll(Database.usersMessages[friendId] ?: emptyList()) } }

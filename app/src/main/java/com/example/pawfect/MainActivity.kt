@@ -43,10 +43,10 @@ fun MyApp() {
         composable(
             route = "plan_activity_screen/{friendId}",
             arguments = listOf(
-                navArgument("friendId") { type = NavType.IntType }
+                navArgument("friendId") { type = NavType.StringType } // Use StringType for Firestore IDs
             )
         ) { backStackEntry ->
-            val friendId = backStackEntry.arguments?.getInt("friendId")
+            val friendId = backStackEntry.arguments?.getString("friendId")
             if (friendId != null) {
                 PlanActivityScreen(navController, friendId)
             }
@@ -58,12 +58,12 @@ fun MyApp() {
         composable(
             route = "chat_screen/{friendId}",
             arguments = listOf(
-                navArgument("friendId") { type = NavType.IntType }
+                navArgument("friendId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val friendId = backStackEntry.arguments?.getInt("friendId")
+            val friendId = backStackEntry.arguments?.getString("friendId")
             if (friendId != null) {
-                ChatScreen(navController, friendId = friendId)
+                ChatScreen(navController, friendId)
             }
         }
 
