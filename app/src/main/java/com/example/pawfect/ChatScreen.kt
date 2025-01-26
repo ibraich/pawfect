@@ -60,7 +60,7 @@ fun PreviewChatScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavHostController, friendId: String) {
-    val friend = Database.getUserById(friendId)
+    val friend = Database.getUserById("0")
     val messages = remember { mutableStateListOf<Message>().apply {
         addAll(Database.usersMessages[friendId] ?: emptyList()) } }
     var newMessage by remember { mutableStateOf("") }

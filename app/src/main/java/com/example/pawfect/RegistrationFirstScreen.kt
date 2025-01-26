@@ -1,6 +1,5 @@
 package com.example.pawfect
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,11 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import org.mindrot.jbcrypt.BCrypt
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 
 
 @Preview
@@ -54,14 +51,9 @@ fun PreviewRegistrationFirstScreen() {
     RegistrationFirstScreen(rememberNavController())
 }
 
-fun hashPassword(password: String): String {
-    return BCrypt.hashpw(password, BCrypt.gensalt())
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationFirstScreen(navController: NavHostController) {
-    val auth = Firebase.auth
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -139,29 +131,18 @@ fun RegistrationFirstScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    /* TODO */
                     if (textLoginState.isEmpty() || textPasswordState.isEmpty()) {
                         errorMessage = "Both fields are required"
                     } else {
-                        signUp(auth, textLoginState, textPasswordState, navController) {errorMessage = it}
-                        /*
-                        val db = FirebaseFirestore.getInstance()
-                        val hashedPassword = hashPassword(textPasswordState)
-                        val user = hashMapOf(
-                            "login" to textLoginState,
-                            "password" to hashedPassword
-                        )
-                        db.collection("Users")
-                            .add(user)
-                            .addOnSuccessListener { documentReference ->
-                                Log.d("Firestore", "User added with ID: ${documentReference.id}")
-                                navController.navigate("profile_screen")
+                        validateEmailAndPassword(textLoginState, textPasswordState) { success,
+                                                                                      error ->
+                            if (success) {
+                                navController.navigate(
+                                    "registration_second_screen/$textLoginState/$textPasswordState")
+                            } else {
+                                errorMessage = error
                             }
-                            .addOnFailureListener { e ->
-                                Log.e("Firestore", "Error adding user", e)
-                                errorMessage = "An error occurred. Please try again."
-                            }
-                         */
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB6C1)),
@@ -189,61 +170,25 @@ fun RegistrationFirstScreen(navController: NavHostController) {
     }
 }
 
-private fun signUp(auth: FirebaseAuth, email: String, password: String, navController: NavHostController, setError: (String?) -> Unit) {
-    auth.createUserWithEmailAndPassword(email, password)
-        .addOnCompleteListener {
-            if (it.isSuccessful) {
-                val userId = auth.currentUser?.uid
-                userId?.let { uid ->
-                    val user = hashMapOf(
-                        "userInfo" to uid
-                    )
-                    val db = Firebase.firestore
-                    db.collection("Users")
-                        .document(uid)
-                        .set(user)
-                        .addOnSuccessListener { document ->
-                            navController.navigate("registration_second_screen")
-                        }
-                        .addOnFailureListener {
-                            setError("Failed to retrieve user data.")
-                        }
-                }
-            } else {
-                setError("Incorrect email or password. Please try again.")
-                Log.e("SignIn", "Error: ${it.exception?.message}")
-            }
-        }
-}
+private fun validateEmailAndPassword(
+    email: String,
+    password: String,
+    onResult: (Boolean, String?) -> Unit
+) {
+    val auth = FirebaseAuth.getInstance()
 
-private fun signIn(auth: FirebaseAuth, email: String, password: String, navController: NavHostController, setError: (String?) -> Unit) {
     auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener {
-            if (it.isSuccessful) {
-                val userId = auth.currentUser?.uid
-                userId?.let { uid ->
-                    val user = hashMapOf(
-                        "userName" to email,
-                        "userInfo" to email
-                    )
-                    val db = Firebase.firestore
-                    db.collection("Users")
-                        .document(uid)
-                        .get()
-                        .addOnSuccessListener { document ->
-                            if (document.exists()) {
-                                navController.navigate("profile_screen")
-                            } else {
-                                setError("User data not found.")
-                            }
-                        }
-                        .addOnFailureListener {
-                            setError("Failed to retrieve user data.")
-                        }
-                }
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                onResult(false, "An account with this email already exists. Please log in.")
             } else {
-                setError("Incorrect email or password. Please try again.")
-                Log.e("SignIn", "Error: ${it.exception?.message}")
+                val exception = task.exception
+                if (exception is FirebaseAuthInvalidUserException ||
+                    exception is FirebaseAuthInvalidCredentialsException) {
+                    onResult(true, null)
+                } else {
+                    onResult(false, "Error: ${exception?.localizedMessage}")
+                }
             }
         }
 }

@@ -77,7 +77,7 @@ fun UserRoutesScreen(navController: NavHostController) {
                         .size(32.dp)
                         .clickable ( indication = null,
                             interactionSource = remember { MutableInteractionSource() })
-                        { navController.navigate("profile_screen") }
+                        { navController.navigateUp() }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(

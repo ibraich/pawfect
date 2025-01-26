@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.ui.res.painterResource
 
 import androidx.compose.material3.Icon
 
@@ -51,25 +50,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.appinterface.R
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 @Preview
 @Composable
-fun RecognizeBreedScreen() {
+fun PreviewRecognizeBreedScreen() {
     RecognizeBreedScreen(rememberNavController())
 }
 
 @Composable
 fun RecognizeBreedScreen(navController: NavHostController) {
-    val currentUser = Database.getUserById(0)
 
     val context = LocalContext.current
-    val selectedImage = remember {
-        mutableStateOf<Bitmap?>(
-            BitmapFactory.decodeResource(context.resources, currentUser.profileImage)
-        )
-    }
-
+    val selectedImage = remember { mutableStateOf<Bitmap?>(null) }
+    val profileImageBase64 = remember { mutableStateOf<String?>(null) }
     val breedName = remember { mutableStateOf("") }
+
+    val fs = Firebase.firestore
+    val auth = Firebase.auth
+
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             val inputStream = context.contentResolver.openInputStream(it)
@@ -85,6 +86,25 @@ fun RecognizeBreedScreen(navController: NavHostController) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        val currentUserUid = auth.currentUser?.uid
+        currentUserUid?.let {
+            fs.collection("Users").document(it)
+                .get()
+                .addOnSuccessListener { document ->
+                    profileImageBase64.value = document.getString("dogProfileImage")
+                }
+                .addOnFailureListener {
+                    profileImageBase64.value = null
+                }
+        }
+    }
+
+    LaunchedEffect(profileImageBase64.value) {
+        profileImageBase64.value?.let { base64 ->
+            selectedImage.value = ImageProcessor.decodeBase64ToBitmap(base64)
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -107,7 +127,7 @@ fun RecognizeBreedScreen(navController: NavHostController) {
                         .clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        ) { navController.navigate("profile_screen") }
+                        ) { navController.navigate("profile_settings_screen") }
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
@@ -126,19 +146,23 @@ fun RecognizeBreedScreen(navController: NavHostController) {
                 modifier = Modifier
                     .size(240.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White),
+                    .background(Color.Gray),
                 contentAlignment = Alignment.Center
             ) {
                 val imageBitmap = selectedImage.value?.asImageBitmap()
-                imageBitmap?.let {
+                if (imageBitmap != null) {
                     Image(
-                        bitmap = it,
+                        bitmap = imageBitmap,
                         contentDescription = "Selected Image",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                } ?: run {
-                    Toast.makeText(context, "No image was chosen", Toast.LENGTH_SHORT).show()
+                } else {
+                    Text(
+                        text = "No Image Selected",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -153,7 +177,8 @@ fun RecognizeBreedScreen(navController: NavHostController) {
                     onClick = {
                         launcher.launch("image/*")
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))                ) {
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC4D0))
+                ) {
                     Text(
                         text = "Load Photo",
                         fontWeight = FontWeight.Bold,
