@@ -66,8 +66,8 @@ public class Database {
         return new ArrayList<>(allUsers.values());
     }
 
-    public static User getUserById(Integer id) {
-        return allUsers.get(id);
+    public static User getUserById(String id) {
+        return allUsers.get(Integer.parseInt(id));
     }
 
     public static HashMap<Integer, List<Integer>> friendLists = new HashMap<>();
@@ -86,7 +86,7 @@ public class Database {
         return Question.getQuestionsByCategory();
     }
 
-    public static HashMap<Integer, List<Message>> usersMessages = new HashMap<>();
+    public static HashMap<String, List<Message>> usersMessages = new HashMap<>();
     public static List<Message> messages = new ArrayList<>();
 
     static {
@@ -95,6 +95,6 @@ public class Database {
         messages.add(new Message("12:03", "Do we have any plans?"));
         messages.add(new Message("12:04", "Let me think"));
 
-        usersMessages.put(1, messages);
+        usersMessages.put("1", messages);
     }
 }

@@ -50,7 +50,7 @@ fun GeminiWaitScreen() {
 
 @Composable
 fun GeminiWaitScreen(navController: NavHostController) {
-    val currentUser = Database.getUserById(0)
+    val currentUser = Database.getUserById("0")
     val context = LocalContext.current
 
 

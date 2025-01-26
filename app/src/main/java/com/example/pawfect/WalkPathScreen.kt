@@ -50,7 +50,7 @@ fun WalkPathScreen() {
 
 @Composable
 fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
-    val currentUser = Database.getUserById(0)
+    val currentUser = Database.getUserById("0")
 
     val coordinatesList = parseCoordinates(coordinates)
 
@@ -98,7 +98,7 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
                         .size(32.dp)
                         .clickable ( indication = null,
                             interactionSource = remember { MutableInteractionSource() })
-                        { navController.navigate("profile_screen") }
+                        { navController.navigateUp() }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(

@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.appinterface.R
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -54,10 +58,10 @@ fun PreviewProfileScreen() {
 @Composable
 fun ProfileScreen(navController: NavHostController) {
 
-    val currentUser = Database.getUserById(0)
-
     var dogName by remember { mutableStateOf("Loading...") }
     var userInfo by remember { mutableStateOf("Fetching user information...") }
+    var profileImageBase64 by remember { mutableStateOf<String?>(null) }
+
     val fs = Firebase.firestore
     val auth = Firebase.auth
 
@@ -70,9 +74,9 @@ fun ProfileScreen(navController: NavHostController) {
                 if (document != null && document.exists()) {
                     dogName = document.getString("dogName") ?: "Unknown Dog"
                     userInfo = document.getString("userInfo") ?: "No additional info"
+                    profileImageBase64 = document.getString("dogProfileImage")
                 } else {
-                    dogName = "No User Found"
-                    userInfo = "No information available"
+                    navController.navigate("login_screen")
                 }
             }
             .addOnFailureListener {
@@ -80,8 +84,6 @@ fun ProfileScreen(navController: NavHostController) {
                 userInfo = "Failed to fetch data"
             }
     }
-
-
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -119,12 +121,28 @@ fun ProfileScreen(navController: NavHostController) {
                     .background(color = Color.LightGray, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = currentUser.profileImage),
-                    contentDescription = "Profile Image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(350.dp).clip(CircleShape)
-                )
+                if (profileImageBase64 != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(ImageProcessor.decodeBase64ToBitmap(profileImageBase64!!))
+                            .crossfade(true)
+                            .build(),
+                        // TODO add image for error
+                        // error = painterResource(R.drawable.default_image),
+                        contentDescription = "Profile Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(350.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.default_image),
+                        contentDescription = "Profile Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(350.dp).clip(CircleShape)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -1,9 +1,11 @@
 package com.example.pawfect
 
 
-import android.R.attr.password
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
-import android.util.Log.e
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -26,6 +28,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -38,53 +42,67 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import coil3.compose.AsyncImage
 import com.example.appinterface.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 
 
 @Preview
 @Composable
 fun PreviewRegistrationSecondScreen() {
-    RegistrationSecondScreen(rememberNavController())
+    RegistrationSecondScreen(rememberNavController(), "", "")
 }
 
 @Composable
-fun RegistrationSecondScreen(navController: NavHostController) {
+fun RegistrationSecondScreen(navController: NavHostController,
+                             email: String?,
+                             password: String?) {
 
-    val auth = Firebase.auth
     var dogName by remember { mutableStateOf("") }
     var dogAge by remember { mutableStateOf("") }
     var dogBreed by remember { mutableStateOf("") }
+    var dogGender by remember { mutableStateOf("Male") }
     var ownerName by remember { mutableStateOf("") }
+    var userStatus by remember { mutableStateOf("") }
+    var userInfo by remember { mutableStateOf("") }
     var ownerAge by remember { mutableStateOf("") }
-    var selectedImageUri by remember { mutableStateOf<String?>(null) }
 
-    val loadImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        selectedImageUri = uri.toString()
+    val context = LocalContext.current
+    val selectedImage = remember {
+        mutableStateOf<Bitmap?>(
+            BitmapFactory.decodeResource(context.resources, R.drawable.default_image)
+        )
+    }
+
+    val loadImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts
+        .GetContent()) { uri: Uri? ->
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(it)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            selectedImage.value = bitmap
+        }
     }
 
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
-        /*TODO*/
+        if (bitmap != null) {
+            selectedImage.value = bitmap
+        }
     }
 
     LazyColumn(
@@ -140,33 +158,71 @@ fun RegistrationSecondScreen(navController: NavHostController) {
         }
 
         item {
-            // Recognize Breed Button
-            Button(
-                /*
-                *  Take into account that it is possible to get from
-                *  the `Recognize Breed Screen` to the `Profile Settings Screen`
-                * */
-                onClick = { /* TODO */ },
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .padding(vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB6C1))
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+
+            Text(
+                text = "Select dog's gender",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Gray
+            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Recognize the breed!",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(verticalArrangement = Arrangement.Center) {
+                    RadioButton(
+                        selected = dogGender == "Male",
+                        onClick = { dogGender = "Male" },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color(0xFFFFB6C1),
+                            unselectedColor = Color.Gray
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Male",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Right
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(64.dp))
+
+                Column(verticalArrangement = Arrangement.Center) {
+                    RadioButton(
+                        selected = dogGender == "Female",
+                        onClick = { dogGender = "Female" },
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = Color(0xFFFFD1DC),
+                            unselectedColor = Color.Gray
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Female",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray
+                    )
+                }
             }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         item {
             // Profile Picture Section
             Text(
                 text = "Load the profile picture of your dog here:",
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.Gray,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -178,21 +234,18 @@ fun RegistrationSecondScreen(navController: NavHostController) {
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedImageUri != null) {
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = "Selected Dog Profile Picture",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
+                val imageBitmap = selectedImage.value?.asImageBitmap()
+                imageBitmap?.let {
                     Image(
-                        painter = painterResource(id = R.drawable.default_image),
+                        bitmap = it,
                         contentDescription = "Dog Profile Placeholder",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(350.dp)
                             .clip(RoundedCornerShape(16.dp))
                     )
+                } ?: run {
+                    Toast.makeText(context, "No image was chosen", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -235,6 +288,25 @@ fun RegistrationSecondScreen(navController: NavHostController) {
         }
 
         item {
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        item {
+            // Profile Status Input
+            InputField(label = "Write your status here:", value = userStatus) { userStatus = it }
+        }
+
+        item {
+            // Profile User Info Input
+            InputField(label = "Write a short story about your dog:", value = userInfo)
+            { userInfo = it }
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        item {
             // Owner's Name Input
             InputField(label = "Owner’s name:", value = ownerName) { ownerName = it }
         }
@@ -252,19 +324,31 @@ fun RegistrationSecondScreen(navController: NavHostController) {
             // Sign Up Button
             var errorMessage by remember { mutableStateOf<String?>(null) }
             Button(
-                onClick = { /* TODO  Redirect to the profile*/
-                    if (dogName.isEmpty() || dogAge.isEmpty()|| dogBreed.isEmpty()|| ownerName.isEmpty()|| ownerAge.isEmpty()) {
+                onClick = {
+                    if (dogName.isEmpty() || dogAge.isEmpty()|| dogBreed.isEmpty()||
+                        ownerName.isEmpty()|| ownerAge.isEmpty()) {
                         errorMessage = "All fields are required"
                     } else {
-                        inputData(
-                            auth,
-                            dogName,
-                            dogAge,
-                            dogBreed,
-                            ownerName,
-                            ownerAge,
-                            navController
-                        ) { errorMessage = it }
+                        ImageProcessor.imageBitmapToBitmap(selectedImage
+                            .value?.asImageBitmap())
+                            ?.let { ImageProcessor.encodeImageToBase64(it) }?.let { img ->
+                                signUp(
+                                    auth = FirebaseAuth.getInstance(),
+                                    email = email,
+                                    password = password,
+                                    dogName = dogName,
+                                    dogAge = dogAge,
+                                    dogBreed = dogBreed,
+                                    dogGender = dogGender,
+                                    dogProfileImage = img,
+                                    userStatus = userStatus,
+                                    userInfo = userInfo,
+                                    ownerName = ownerName,
+                                    ownerAge = ownerAge,
+                                    navController = navController,
+                                    setError = { errorMessage = it }
+                                )
+                            }
                     }
                 },
 
@@ -317,26 +401,56 @@ fun InputField(label: String, value: String, onValueChange: (String) -> Unit) {
     }
 }
 
-private fun inputData(auth: FirebaseAuth, dogName: String, dogAge: String, dogBreed: String, ownerName: String, ownerAge: String, navController: NavHostController, setError: (String?) -> Unit) {
-    val currentUserUid = auth.currentUser?.uid
-    val userId = auth.currentUser?.uid
-    userId?.let { uid ->
-        val user = hashMapOf(
-            "dogName" to dogName,
-            "dogAge" to dogAge,
-            "dogBreed" to dogBreed,
-            "ownerName" to ownerName,
-            "ownerAge" to ownerAge
-        )
-        val db = Firebase.firestore
-        db.collection("Users")
-            .document(uid)
-            .set(user)
-            .addOnSuccessListener { document ->
-                navController.navigate("profile_screen")
-            }
-            .addOnFailureListener {
-                setError("Failed to retrieve user data.")
+private fun signUp(
+    auth: FirebaseAuth,
+    email: String?,
+    password: String?,
+    dogName: String,
+    dogAge: String,
+    dogBreed: String,
+    dogGender: String,
+    dogProfileImage: String,
+    userStatus: String,
+    userInfo: String,
+    ownerName: String,
+    ownerAge: String,
+    navController: NavHostController,
+    setError: (String?) -> Unit
+) {
+    if (email != null && password != null) {
+        auth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val userId = auth.currentUser?.uid
+                    userId?.let { uid ->
+                        val user = hashMapOf(
+                            "dogName" to dogName,
+                            "dogAge" to dogAge,
+                            "dogBreed" to dogBreed,
+                            "dogGender" to dogGender,
+                            "dogProfileImage" to dogProfileImage,
+                            "userStatus" to userStatus,
+                            "userInfo" to userInfo,
+                            "ownerName" to ownerName,
+                            "ownerAge" to ownerAge
+                        )
+                        val db = Firebase.firestore
+                        db.collection("Users")
+                            .document(uid)
+                            .set(user)
+                            .addOnSuccessListener {
+                                navController.navigate("profile_screen")
+                            }
+                            .addOnFailureListener {
+                                setError("Failed to save user data to Firestore.")
+                            }
+                    } ?: run {
+                        setError("Failed to retrieve user ID.")
+                    }
+                } else {
+                    setError("Sign-up failed: ${task.exception?.message}")
+                    Log.e("SignUp", "Error: ${task.exception?.message}")
+                }
             }
     }
 }

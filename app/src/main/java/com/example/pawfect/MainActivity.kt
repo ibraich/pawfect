@@ -31,7 +31,17 @@ fun MyApp() {
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable("registration_first_screen") { RegistrationFirstScreen(navController) }
-        composable("registration_second_screen") { RegistrationSecondScreen(navController) }
+        composable(
+            "registration_second_screen/{email}/{password}",
+            arguments = listOf(
+                navArgument("email") { type = NavType.StringType },
+                navArgument("password") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email")
+            val password = backStackEntry.arguments?.getString("password")
+            RegistrationSecondScreen(navController, email, password)
+        }
         composable("login_screen") { LoginScreen(navController) }
         composable("profile_screen") { ProfileScreen(navController) }
         composable("friend_list_screen") { FriendListScreen(navController) }
