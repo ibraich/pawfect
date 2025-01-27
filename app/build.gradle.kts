@@ -82,4 +82,5 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
     implementation("org.mindrot:jbcrypt:0.4")
+    implementation("com.google.firebase:firebase-storage")
 }

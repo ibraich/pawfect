@@ -1,6 +1,7 @@
 package com.example.pawfect
 
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -53,12 +54,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.appinterface.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 
 @Preview
@@ -88,12 +96,15 @@ fun RegistrationSecondScreen(navController: NavHostController,
         )
     }
 
+    var selectedImageUri : Uri? = null
+
     val loadImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts
         .GetContent()) { uri: Uri? ->
         uri?.let {
             val inputStream = context.contentResolver.openInputStream(it)
             val bitmap = BitmapFactory.decodeStream(inputStream)
             selectedImage.value = bitmap
+            selectedImageUri = uri
         }
     }
 
@@ -102,6 +113,12 @@ fun RegistrationSecondScreen(navController: NavHostController,
     ) { bitmap ->
         if (bitmap != null) {
             selectedImage.value = bitmap
+            val tempUri = saveBitmapToCache(context, bitmap)
+            if (tempUri != null) {
+                selectedImageUri = tempUri
+            } else {
+                Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -341,6 +358,7 @@ fun RegistrationSecondScreen(navController: NavHostController,
                                     dogBreed = dogBreed,
                                     dogGender = dogGender,
                                     dogProfileImage = img,
+                                    dogProfileImageUri = selectedImageUri,
                                     userStatus = userStatus,
                                     userInfo = userInfo,
                                     ownerName = ownerName,
@@ -349,6 +367,7 @@ fun RegistrationSecondScreen(navController: NavHostController,
                                     setError = { errorMessage = it }
                                 )
                             }
+
                     }
                 },
 
@@ -410,6 +429,7 @@ private fun signUp(
     dogBreed: String,
     dogGender: String,
     dogProfileImage: String,
+    dogProfileImageUri: Uri?,
     userStatus: String,
     userInfo: String,
     ownerName: String,
@@ -434,12 +454,30 @@ private fun signUp(
                             "ownerName" to ownerName,
                             "ownerAge" to ownerAge
                         )
+
                         val db = Firebase.firestore
                         db.collection("Users")
                             .document(uid)
                             .set(user)
                             .addOnSuccessListener {
-                                navController.navigate("profile_screen")
+                                val currentTime = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+                                    .apply { timeZone = TimeZone.getTimeZone("Europe/Berlin") }
+                                    .format(Date())
+
+                                FirebaseStorageHelper.uploadFile(
+                                    folderPath = "users/$userId/profilePic",
+                                    fileName = "profilePic_$currentTime",
+                                    fileUri = dogProfileImageUri!!,
+                                    onSuccess = { downloadUrl ->
+                                        FirestoreHelper.updateFields(collectionName = "Users", documentId = userId.toString(),
+                                            updates = mapOf("profilePicUrl" to downloadUrl.toString()), navController.context,
+                                            onSuccessMessage = "User data saved successfully!",
+                                            onNavigate = { navController.navigate("profile_screen") })
+                                    },
+                                    onFailure = { errorMessage ->
+                                        setError("Failed to save user image to Firebase storage.")
+                                    }
+                                )
                             }
                             .addOnFailureListener {
                                 setError("Failed to save user data to Firestore.")
@@ -452,5 +490,28 @@ private fun signUp(
                     Log.e("SignUp", "Error: ${task.exception?.message}")
                 }
             }
+    }
+}
+
+fun saveBitmapToCache(context: Context, bitmap: Bitmap): Uri? {
+    return try {
+        // Create a unique file name
+        val fileName = "temp_image_${System.currentTimeMillis()}.jpg"
+        // Get the cache directory
+        val file = File(context.cacheDir, fileName)
+        // Write the bitmap to the file as JPEG
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+        // Return the file's Uri
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            file
+        )
+    } catch (e: Exception) {
+        Log.e("ImageSave", "Error saving bitmap to cache", e)
+        null
     }
 }
