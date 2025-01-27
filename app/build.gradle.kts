@@ -83,4 +83,5 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("com.google.firebase:firebase-storage")
+    implementation("androidx.compose.animation:animation:1.5.0")
 }
