@@ -1,5 +1,11 @@
 package com.example.pawfect
 
+import android.content.ContentValues.TAG
+import android.content.Context
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
@@ -41,6 +50,10 @@ import coil3.gif.GifDecoder
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.appinterface.R
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Preview
 @Composable
@@ -50,28 +63,60 @@ fun GeminiWaitScreen() {
 
 @Composable
 fun GeminiWaitScreen(navController: NavHostController) {
-    val currentUser = Database.getUserById("0")
     val context = LocalContext.current
+    var userlatitude = 0.0
+    var userlongitude = 0.0
 
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, get the location
+            getLocation(context) { latitude, longitude ->
+                userlatitude = latitude
+                userlongitude = longitude
+                Log.d("Location", "Updated user location: $userlatitude, $userlongitude")
+                try {
+                    val model = Gemini()
+                    val query = context.getString(R.string.gemini_query) +
+                            " ${userlatitude}, ${userlongitude}"
+                    model.getResponse(query, object : ResponseCallback {
+                        override fun onResponse(response: String) {
+                            navController.navigate("walk_path_screen/$response")
+                        }
+
+                        override fun onError(throwable: Throwable) {
+                            val coordinatesJson = """
+                        [[49.9327659, 11.5687332],
+                         [49.9213951, 11.5579074]]
+                         """.trimIndent()
+
+                            navController.navigate("walk_path_screen/$coordinatesJson")
+                        }
+                    }
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    navController.navigate("map_screen")
+                }
+            }
+        } else {
+            // Permission denied, handle accordingly
+            Log.e("Location", "Location permission is required")
+            navController.navigate("map_screen")
+
+        }
+    }
+
+    // Check if the permission is already granted
+    val hasLocationPermission = remember {
+        ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    }
 
     // Background call to initialize GeminiPro
     LaunchedEffect(Unit) {
-        try {
-            val model = Gemini()
-            val query = context.getString(R.string.gemini_query) +
-                    " ${currentUser.location.latitude}, ${currentUser.location.longitude}"
-            model.getResponse(query, object : ResponseCallback {
-                override fun onResponse(response: String) {
-                    navController.navigate("walk_path_screen/$response")
-                }
+        locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
-                override fun onError(throwable: Throwable) {
-                }
-            })
-        } catch (e: Exception) {
-            e.printStackTrace()
-            navController.navigate("map_screen")
-        }
     }
 
 
@@ -115,7 +160,7 @@ fun GeminiWaitScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val imageLoader = ImageLoader.Builder(LocalContext.current)
+            val gifLoader = ImageLoader.Builder(LocalContext.current)
                 .components {
                     add(GifDecoder.Factory())
                 }
@@ -142,7 +187,7 @@ fun GeminiWaitScreen(navController: NavHostController) {
                             .crossfade(true)
                             .build(),
                         contentDescription = "Load dog",
-                        imageLoader = imageLoader,
+                        imageLoader = gifLoader,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop // Adjust content scaling
                     )
@@ -152,4 +197,35 @@ fun GeminiWaitScreen(navController: NavHostController) {
 
         }
     }
+}
+
+private fun getLocation(context: Context, onLocationRetrieved: (Double, Double) -> Unit) {
+    val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+
+    // Check if permissions are granted
+    if (ActivityCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        return
+    }
+
+    fusedLocationClient.lastLocation
+        .addOnSuccessListener { location ->
+            if (location != null) {
+                val latitude = location.latitude
+                val longitude = location.longitude
+                onLocationRetrieved(latitude, longitude)
+            } else {
+                Log.d("Location", "Location is null")
+            }
+        }
+        .addOnFailureListener { e ->
+            // Handle failure
+            Log.e("Location", "Error getting location", e)
+        }
 }

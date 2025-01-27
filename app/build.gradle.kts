@@ -83,4 +83,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-database")
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
 }

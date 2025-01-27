@@ -34,6 +34,6 @@ public class User {
         this.ownerName = ownerName;
         this.ownerAge = ownerAge;
         this.dogPersonality = dogPersonality;
-        this.location = new GeoPoint(37.7749, -122.4194);
+        this.location = new GeoPoint(49.9327659, 11.5687332);
     }
 }

@@ -25,8 +25,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
@@ -170,8 +172,63 @@ fun RegistrationSecondScreen(navController: NavHostController,
         }
 
         item {
-            // Dog's Breed Input
-            InputField(label = "Your dog’s breed:", value = dogBreed) { dogBreed = it }
+            val breeds = context.resources.getStringArray(R.array.breeds_array).toList() // List of breeds from the resource
+            var expanded by remember { mutableStateOf(false) }
+
+            // Dog's breed
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Dog's breed:",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(55.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFFFD1DC), shape = RoundedCornerShape(12.dp)),
+                ) {
+                    Text(
+                        text = dogBreed,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expanded = !expanded }
+                            .padding(8.dp)
+                            .clickable { expanded = !expanded }, // Toggle dropdown visibility
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFFFFE1E7))
+
+
+                    ) {
+                        breeds.forEach { breed ->
+                            DropdownMenuItem(onClick = {
+                                dogBreed = breed
+                                expanded = false // Hide the dropdown after selection
+                            }) {
+                                Text(text = breed)
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         item {

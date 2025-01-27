@@ -24,8 +24,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
@@ -71,6 +74,7 @@ fun PreviewProfileSettingsScreen() {
     ProfileSettingsScreen(rememberNavController())
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileSettingsScreen(navController: NavHostController) {
 
@@ -306,10 +310,67 @@ fun ProfileSettingsScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Dog's breed (uses shared state)
-            ProfileInfoField(label = "Dog's breed", initialValue = dogBreed) { updatedDogBreed ->
-                dogBreed = updatedDogBreed
+
+            val breeds = context.resources.getStringArray(R.array.breeds_array).toList() // List of breeds from the resource
+            var expanded by remember { mutableStateOf(false) } // Controls the dropdown menu visibility
+            // Dog's breed
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Dog's breed:",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.Start)
+                )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFFFE1E7))
+                        .padding(8.dp) 
+                ) {
+                    Text(
+                        text = dogBreed,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expanded = !expanded }
+                            .padding(8.dp)
+                            .clickable { expanded = !expanded }, // Toggle dropdown visibility
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0xFFFFE1E7))
+
+                    ) {
+                        breeds.forEach { breed ->
+                            DropdownMenuItem(onClick = {
+                                dogBreed = breed
+                                expanded = false // Hide the dropdown after selection
+                            }) {
+                                Text(text = breed)
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
+
 
             Spacer(modifier = Modifier.height(8.dp))
 

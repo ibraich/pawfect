@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name" translatable="false">Pawfect Match</string>
     <string name="gemini_query" translatable="false">I will pass you coordinates of a location.
-Please generate a walking path nearby, including 10 random coordinates for places where I can walk my dog.
-The coordinates should be at least 100 meters apart from each other and from the starting point.
-Return ONLY the list of 10 coordinates, with no additional text.
-My coordinates: </string>
+        Please generate start and end coordinate with at least 1 km in-between to have a walk.
+        Format is [[37.779202, -122.429645], [37.787514, -122.424732]].
+        Return ONLY the list of 2 coordinates, with no additional text.
+        My coordinates:  </string>
 
     <string name="gemini_dog_personality_query">
         Provide a one-word personality prediction from the options below based on the given dog information and picture.

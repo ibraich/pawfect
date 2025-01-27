@@ -40,13 +40,14 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
-
-@Preview
-@Composable
-fun WalkPathScreen() {
-    val coordinates = "37.7749, -122.4194, 37.774, -122.425, 37.7749, -122.4194"
-    WalkPathScreen(rememberNavController(), coordinates)
-}
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import org.json.JSONObject
 
 @Composable
 fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
@@ -124,16 +125,35 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
                             val startPoint = coordinatesList[0]
                             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startPoint, 12f))
 
-                            val polylineOptions = PolylineOptions()
-                                .addAll(coordinatesList)
-                                .width(8f)
-                            googleMap.addPolyline(polylineOptions)
+                            val apiKey = mapViewContext.getString(R.string.google_maps_api_key)
+                            val origin = "${coordinatesList.first().latitude},${coordinatesList.first().longitude}"
+                            val destination = "${coordinatesList.last().latitude},${coordinatesList.last().longitude}"
+                            val url = "https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey"
 
-                            // Add markers to the map for each point in the coordinates list
-                            coordinatesList.forEach { latLng ->
-                                googleMap.addMarker(
-                                    MarkerOptions().position(latLng).title("Point: ${latLng.latitude}, ${latLng.longitude}")
-                                )
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    val response = OkHttpClient().newCall(
+                                        Request.Builder().url(url).build()).execute().body?.string()
+
+                                    response?.let {
+                                        val points = JSONObject(it)
+                                            .getJSONArray("routes")
+                                            .getJSONObject(0)
+                                            .getJSONObject("overview_polyline")
+                                            .getString("points")
+
+                                        val path = decodePolyline(points)
+                                        withContext(Dispatchers.Main) {
+                                            googleMap.addPolyline(PolylineOptions().addAll(path).width(8f))
+                                            coordinatesList.forEach { latLng ->
+                                                googleMap.addMarker(MarkerOptions().position(latLng).title("Point: ${latLng.latitude}, ${latLng.longitude}"))
+                                            }
+                                        }
+                                    }
+
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
 
                         }
@@ -172,11 +192,58 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
 }
 
 fun parseCoordinates(coordinatesString: String?): List<LatLng> {
-    return coordinatesString
-        ?.trim()
-        ?.split("\n")
-        ?.map { coordinate ->
-            val (latitude, longitude) = coordinate.split(",").map { it.trim().toDouble() }
-            LatLng(latitude, longitude)
-        } ?: emptyList()
+    if (coordinatesString.isNullOrBlank()) return emptyList()
+
+    val coordinatesList = mutableListOf<LatLng>()
+
+    try {
+        val jsonArray = JSONArray(coordinatesString)
+
+        for (i in 0 until jsonArray.length()) {
+            val coordinateArray = jsonArray.getJSONArray(i)
+            val latitude = coordinateArray.getDouble(0)
+            val longitude = coordinateArray.getDouble(1)
+            coordinatesList.add(LatLng(latitude, longitude))
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+
+    return coordinatesList
 }
+
+
+fun decodePolyline(encoded: String): List<LatLng> {
+    val poly = ArrayList<LatLng>()
+    var index = 0
+    var lat = 0
+    var lng = 0
+
+    while (index < encoded.length) {
+        var b: Int
+        var shift = 0
+        var result = 0
+        do {
+            b = encoded[index++].code - 63
+            result = result or (b and 0x1f shl shift)
+            shift += 5
+        } while (b >= 0x20)
+        val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+        lat += dlat
+
+        shift = 0
+        result = 0
+        do {
+            b = encoded[index++].code - 63
+            result = result or (b and 0x1f shl shift)
+            shift += 5
+        } while (b >= 0x20)
+        val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+        lng += dlng
+
+        poly.add(LatLng(lat / 1E5, lng / 1E5))
+    }
+    return poly
+}
+
+
