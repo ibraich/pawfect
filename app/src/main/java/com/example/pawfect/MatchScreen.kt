@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +53,10 @@ import kotlinx.coroutines.launch
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import androidx.compose.ui.text.style.TextAlign
+import coil3.ImageLoader
+import coil3.compose.AsyncImage
+import coil3.gif.GifDecoder
+import coil3.request.ImageRequest
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -69,6 +75,7 @@ fun MatchScreen(navController: NavHostController) {
     val auth = Firebase.auth
     val seenUserIds = remember { mutableStateListOf<String>() }
     var swipesRemaining by remember { mutableStateOf(0) }
+    var showMatchAnimation by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val currentUserUid = auth.currentUser?.uid
@@ -102,18 +109,69 @@ fun MatchScreen(navController: NavHostController) {
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFFFFF4F8) // Background color
     ) {
-        if (swipesRemaining > 0 && filteredMatches.isNotEmpty()) {
-            DisplayUserCards(
-                userData = filteredMatches.map { it.first },
-                navController = navController,
-                onSwipe = { swipesRemaining-- } // Decrement swipesRemaining on each swipe
-            )
-        } else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "No more matches available", fontSize = 20.sp, color = Color.Gray)
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (swipesRemaining > 0 && filteredMatches.isNotEmpty()) {
+                DisplayUserCards(
+                    userData = filteredMatches.map { it.first },
+                    navController = navController,
+                    onSwipe = { swipesRemaining-- },
+                    onMatchConfirmed = { showMatchAnimation = true } // Trigger animation
+                )
+            } else {
+                val imageLoader = ImageLoader.Builder(LocalContext.current)
+                    .components {
+                        add(GifDecoder.Factory())
+                    }
+                    .build()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = Color(0xFFFFF4F8), shape = RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Oops! You've swiped through all the paws!\nCheck back later for more doggy matches 🐾",
+                            fontSize = 25.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF4081),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(400.dp) // Adjust height to make the GIF taller
+                                .clip(RoundedCornerShape(16.dp)) // Ensure rounded corners
+                                .background(color = Color(0xFFFFC1CC)), // Optional background color for contrast
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(R.raw.sadodogo) // Replace with your actual GIF file
+                                    .build(),
+                                contentDescription = "No more matches",
+                                imageLoader = imageLoader,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (showMatchAnimation) {
+                MatchCelebrationAnimation {
+                    showMatchAnimation = false // Hide animation after it's done
+                }
             }
         }
     }
@@ -160,7 +218,8 @@ private fun fetchUsers(
 fun DisplayUserCards(
     userData: List<UserFetch>,
     navController: NavHostController,
-    onSwipe: () -> Unit // Callback to handle swipe action
+    onSwipe: () -> Unit, // Callback to handle swipe action
+    onMatchConfirmed: () -> Unit
 ) {
     var currentUserIndex by remember { mutableStateOf(0) }
 
@@ -265,7 +324,7 @@ fun DisplayUserCards(
                             val currentUserId = Firebase.auth.currentUser?.uid
                             val matchedUserId = userData[currentUserIndex].id
                             if (currentUserId != null && matchedUserId.isNotEmpty()) {
-                                handleMatch(currentUserId, matchedUserId)
+                                handleMatch(currentUserId, matchedUserId, onMatchConfirmed)
                                 addToHaveSeen(currentUserId, matchedUserId)
                                 onSwipe()
                                 currentUserIndex = (currentUserIndex + 1) % userData.size
@@ -276,5 +335,3 @@ fun DisplayUserCards(
         }
     }
 }
-
-

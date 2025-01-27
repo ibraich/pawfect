@@ -2,7 +2,8 @@ package com.example.pawfect
 
 import android.util.Log
 
-fun handleMatch(currentUserId: String, targetUserId: String) {
+
+fun handleMatch(currentUserId: String, targetUserId: String, onMatchConfirmed: () -> Unit) {
     val firestore = Firebase.firestore
 
     // Check if the target user already initiated a match with the current user
@@ -13,6 +14,7 @@ fun handleMatch(currentUserId: String, targetUserId: String) {
         .addOnSuccessListener { documents ->
             if (!documents.isEmpty) {
                 // Match confirmed
+                onMatchConfirmed()
                 confirmMatch(currentUserId, targetUserId, documents.documents.first().id)
             } else {
                 // No mutual match; create a pending match
