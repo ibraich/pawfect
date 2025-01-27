@@ -1,5 +1,6 @@
 package com.example.pawfect
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,12 +42,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.appinterface.R
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.getField
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.net.URL
 
 @Preview
 @Composable
@@ -61,6 +65,7 @@ fun ProfileScreen(navController: NavHostController) {
     var dogName by remember { mutableStateOf("Loading...") }
     var userInfo by remember { mutableStateOf("Fetching user information...") }
     var profileImageBase64 by remember { mutableStateOf<String?>(null) }
+    var profilePicUrl by remember { mutableStateOf<String?>(null) }
 
     val fs = Firebase.firestore
     val auth = Firebase.auth
@@ -75,6 +80,7 @@ fun ProfileScreen(navController: NavHostController) {
                     dogName = document.getString("dogName") ?: "Unknown Dog"
                     userInfo = document.getString("userInfo") ?: "No additional info"
                     profileImageBase64 = document.getString("dogProfileImage")
+                    profilePicUrl = document.getString("profilePicUrl")
                 } else {
                     navController.navigate("login_screen")
                 }
@@ -127,8 +133,7 @@ fun ProfileScreen(navController: NavHostController) {
                             .data(ImageProcessor.decodeBase64ToBitmap(profileImageBase64!!))
                             .crossfade(true)
                             .build(),
-                        // TODO add image for error
-                        // error = painterResource(R.drawable.default_image),
+                        error = painterResource(R.drawable.image_not_found_icon),
                         contentDescription = "Profile Image",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
