@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +46,9 @@ import com.example.appinterface.R
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import androidx.compose.ui.text.style.TextAlign
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -195,10 +199,17 @@ fun MatchCard(match: UserFetch, onClick: () -> Unit) {
                 .background(color = Color.LightGray, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = match.dogName.take(1).uppercase(), // Use the first letter of the dog's name
-                fontSize = 24.sp,
-                color = Color.Black
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(ImageProcessor.decodeBase64ToBitmap(match.dogProfileImage))
+                    .crossfade(true)
+                    .build(),
+                error = painterResource(R.drawable.image_not_found_icon),
+                contentDescription = "Profile Image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(350.dp)
+                    .clip(CircleShape)
             )
         }
 

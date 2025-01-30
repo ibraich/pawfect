@@ -16,6 +16,8 @@ import com.google.firebase.auth.auth
 import android.Manifest
 import androidx.navigation.navDeepLink
 
+val personalityScoresCache = mutableMapOf<String, Map<String, Double>>()
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

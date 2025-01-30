@@ -11,5 +11,6 @@ data class UserFetch(
     val dogName: String = "",
     val dogAge: String = "",
     val location: String = "",
-    val dogPersonality: String = ""
+    val dogPersonality: String = "",
+    val dogProfileImage: String = ""
 )

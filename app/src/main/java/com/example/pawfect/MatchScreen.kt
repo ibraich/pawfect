@@ -57,6 +57,7 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import coil3.gif.GifDecoder
 import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -244,10 +245,17 @@ fun DisplayUserCards(
                     .background(color = Color.LightGray, shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Image Placeholder", // Replace with image loader like Coil
-                    color = Color.Gray,
-                    fontSize = 16.sp
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(ImageProcessor.decodeBase64ToBitmap(currentUser.dogProfileImage))
+                        .crossfade(true)
+                        .build(),
+                    error = painterResource(R.drawable.image_not_found_icon),
+                    contentDescription = "Profile Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(350.dp)
+                        .clip(CircleShape)
                 )
             }
 
