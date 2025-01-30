@@ -88,4 +88,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
     implementation("androidx.compose.animation:animation:1.5.0")
+
+    implementation("com.google.firebase:firebase-messaging:24.1.0")
 }

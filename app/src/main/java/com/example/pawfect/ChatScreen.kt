@@ -1,5 +1,7 @@
 package com.example.pawfect
 
+
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,13 +23,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,10 +50,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.appinterface.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 @Preview
 @Composable
@@ -57,13 +69,51 @@ fun PreviewChatScreen() {
     ChatScreen(rememberNavController(), "1")
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(navController: NavHostController, friendId: String) {
-    val friend = Database.getUserById("0")
-    val messages = remember { mutableStateListOf<Message>().apply {
-        addAll(Database.usersMessages[friendId] ?: emptyList()) } }
+    val db = FirebaseFirestore.getInstance()
+    val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    var friend by remember { mutableStateOf<User?>(null) }
+    val messages = remember { mutableStateListOf<Message>() }
     var newMessage by remember { mutableStateOf("") }
+
+    LaunchedEffect(friendId) {
+        ChatScreenManager.setChatOpen(friendId)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            ChatScreenManager.setChatOpen(null)
+        }
+    }
+
+    LaunchedEffect(friendId) {
+        db.collection("Users").document(friendId).get()
+            .addOnSuccessListener { document ->
+                friend = document.toObject(User::class.java)
+            }
+    }
+
+    LaunchedEffect(friendId) {
+        val chatId = getChatId(currentUserUid, friendId)
+
+        db.collection("Chats").document(chatId)
+            .collection("Messages")
+            .orderBy("timeMillis", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, _ ->
+                messages.clear()
+                snapshot?.documents?.mapNotNull { it.toObject(Message::class.java) }?.let { messageList ->
+                    messages.addAll(messageList)
+
+                    for (document in snapshot.documents) {
+                        if (document.getBoolean("isRead") == false) {
+                            document.reference.update("isRead", true)
+                        }
+                    }
+                }
+            }
+    }
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -92,16 +142,33 @@ fun ChatScreen(navController: NavHostController, friendId: String) {
                         ) { navController.navigateUp() }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Image(
-                    painter = painterResource(id = friend.profileImage),
-                    contentDescription = "Friend Profile Picture",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                )
+
+                if (friend?.dogProfileImage != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(ImageProcessor.decodeBase64ToBitmap(friend?.dogProfileImage!!))
+                            .crossfade(true)
+                            .build(),
+                        error = painterResource(R.drawable.image_not_found_icon),
+                        contentDescription = "Profile Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.default_image),
+                        contentDescription = "Profile Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(40.dp).clip(CircleShape)
+                    )
+                }
+
                 Spacer(modifier = Modifier.width(8.dp))
+
                 Text(
-                    text = friend.dogName,
+                    text = friend?.dogName ?: "Unknown",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -111,15 +178,10 @@ fun ChatScreen(navController: NavHostController, friendId: String) {
             Spacer(modifier = Modifier.height(8.dp))
 
             // Chat messages
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                reverseLayout = true
-            ) {
-                items(messages.asReversed()) { message ->
-                    val isUserMessage = messages.indexOf(message) % 2 != 0
-                    ChatBubble(message = message, isUserMessage = isUserMessage)
+            LazyColumn(modifier = Modifier.weight(1f).padding(16.dp), reverseLayout = true) {
+                items(messages.reversed()) { message ->
+                    val isUserMessage = message.senderId == currentUserUid
+                    ChatBubble(message, isUserMessage)
                 }
             }
 
@@ -127,9 +189,7 @@ fun ChatScreen(navController: NavHostController, friendId: String) {
 
             // Input field and send button
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = Color(0xFFFFC1CC))
+                modifier = Modifier.fillMaxWidth().background(Color(0xFFFFC1CC))
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -137,38 +197,18 @@ fun ChatScreen(navController: NavHostController, friendId: String) {
                     value = newMessage,
                     onValueChange = { newMessage = it },
                     placeholder = { Text(text = "Start a message") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
+                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                         .clip(RoundedCornerShape(16.dp)),
-                    singleLine = true,
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.White,
-                        cursorColor = Color.Black,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+                    singleLine = true
                 )
-                Button(
-                    onClick = {
-                        if (newMessage.isNotBlank()) {
-                            val timestamp = SimpleDateFormat("HH:mm", Locale.getDefault())
-                                .format(Date())
-                            val message = Message(timestamp, newMessage)
-                            messages.add(message)
-                            Database.usersMessages[friendId]?.add(message)
-                            newMessage = ""
-                        }
-                    },
-                    modifier = Modifier.clip(RoundedCornerShape(12.dp)),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAA87A5))
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_send),
-                        contentDescription = "Send",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
+                Button(onClick = {
+                    if (newMessage.isNotBlank()) {
+                        sendMessage(currentUserUid, friendId, newMessage, db)
+                        newMessage = ""
+                    }
+                }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAA87A5))) {
+                    Icon(painter = painterResource(id = R.drawable.ic_send),
+                        contentDescription = "Send", tint = Color.White)
                 }
             }
         }
@@ -208,3 +248,42 @@ fun ChatBubble(message: Message, isUserMessage: Boolean) {
     }
 }
 
+fun getChatId(user1: String, user2: String): String {
+    return if (user1 < user2) "$user1-$user2" else "$user2-$user1"
+}
+
+fun sendMessage(senderId: String, receiverId: String, messageText: String, db: FirebaseFirestore) {
+    getFirebaseServerTime { ntpTime ->
+        val chatId = getChatId(senderId, receiverId)
+        val timestamp = ntpTime ?: System.currentTimeMillis()
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val formattedTime = sdf.format(Date(timestamp))
+        val message = Message(senderId, receiverId, messageText, formattedTime, timestamp, false)
+
+        db.collection("Chats").document(chatId).collection("Messages")
+            .add(message)
+            .addOnSuccessListener {
+                Log.d("Chat", "Message sent successfully")
+            }
+            .addOnFailureListener {
+                Log.e("Chat", "Failed to send message", it)
+            }
+    }
+}
+
+fun getFirebaseServerTime(callback: (Long?) -> Unit) {
+    val db = FirebaseFirestore.getInstance()
+    val docRef = db.collection("serverTime").document("time")
+
+    val data = hashMapOf("timestamp" to FieldValue.serverTimestamp())
+    docRef.set(data).addOnSuccessListener {
+        docRef.get().addOnSuccessListener { document ->
+            val timestamp = document.getTimestamp("timestamp")?.toDate()?.time
+            callback(timestamp)
+        }.addOnFailureListener {
+            callback(null)
+        }
+    }.addOnFailureListener {
+        callback(null)
+    }
+}

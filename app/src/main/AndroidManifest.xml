@@ -7,8 +7,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.INTERNET" />
 
-
-
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="com.example.pawfect.Firebase"
@@ -21,6 +22,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppInterface"
         tools:targetApi="31">
+
+        <service
+            android:name="com.example.pawfect.PawfectFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+
+
         <activity
             android:name="com.example.pawfect.MainActivity"
             android:exported="true"
@@ -30,6 +42,10 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="myapp" android:host="chat" />
             </intent-filter>
         </activity>
 
