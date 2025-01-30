@@ -1,9 +1,11 @@
 package com.example.pawfect
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,12 +13,23 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import android.Manifest
+import androidx.navigation.navDeepLink
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Question.loadQuestions(this)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                101
+            )
+        }
+
         setContent {
             MyApp()
         }
@@ -67,9 +80,8 @@ fun MyApp() {
 
         composable(
             route = "chat_screen/{friendId}",
-            arguments = listOf(
-                navArgument("friendId") { type = NavType.StringType }
-            )
+            arguments = listOf(navArgument("friendId") { type = NavType.StringType }),
+            deepLinks = listOf(navDeepLink { uriPattern = "myapp://chat/{friendId}" })
         ) { backStackEntry ->
             val friendId = backStackEntry.arguments?.getString("friendId")
             if (friendId != null) {

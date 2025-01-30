@@ -11,56 +11,56 @@ import java.util.Map;
 public class Database {
     public static HashMap<Integer, User> allUsers = new HashMap<>();
 
-    static {
-        allUsers.put(0, new User(
-                0,
-                R.drawable.frenchbuldog,
-                "Appa",
-                "French Bulldog",
-                "Such nice weather to go for a walk!",
-                "I love avatar the last air, bender and sticks. In that order",
-                "Richard",
-                24,
-                Personality.SOCIAL_BUTTERFLY.name()
-                )
-        );
-        allUsers.put(1, new User(
-                1,
-                R.drawable.chihuahua,
-                "Anakin",
-                "Chihuahua",
-                "Such nice weather to go for a walk!",
-                "Friendly and loves cuddles!",
-                "Laura",
-                20,
-                Personality.PROTECTIVE_GUARDIAN.name()
-                )
-        );
-        allUsers.put(2, new User(
-                2,
-                R.drawable.griffon,
-                "Chappi",
-                "Griffon",
-                "Ready to play fetch!",
-                "Energetic and playful.",
-                "Bob",
-                23,
-                Personality.BRAINY_STRATEGIST.name()
-                )
-        );
-        allUsers.put(3, new User(
-                3,
-                R.drawable.pug,
-                "Mumu",
-                "Pug",
-                "Let's go for a run!",
-                "Loves to explore new places.",
-                "Katharine",
-                25,
-                Personality.CHILL_COUCH_POTATO.name()
-                )
-        );
-    }
+//    static {
+//        allUsers.put(0, new User(
+//                0,
+//                R.drawable.frenchbuldog,
+//                "Appa",
+//                "French Bulldog",
+//                "Such nice weather to go for a walk!",
+//                "I love avatar the last air, bender and sticks. In that order",
+//                "Richard",
+//                24,
+//                Personality.SOCIAL_BUTTERFLY.name()
+//                )
+//        );
+//        allUsers.put(1, new User(
+//                1,
+//                R.drawable.chihuahua,
+//                "Anakin",
+//                "Chihuahua",
+//                "Such nice weather to go for a walk!",
+//                "Friendly and loves cuddles!",
+//                "Laura",
+//                20,
+//                Personality.PROTECTIVE_GUARDIAN.name()
+//                )
+//        );
+//        allUsers.put(2, new User(
+//                2,
+//                R.drawable.griffon,
+//                "Chappi",
+//                "Griffon",
+//                "Ready to play fetch!",
+//                "Energetic and playful.",
+//                "Bob",
+//                23,
+//                Personality.BRAINY_STRATEGIST.name()
+//                )
+//        );
+//        allUsers.put(3, new User(
+//                3,
+//                R.drawable.pug,
+//                "Mumu",
+//                "Pug",
+//                "Let's go for a run!",
+//                "Loves to explore new places.",
+//                "Katharine",
+//                25,
+//                Personality.CHILL_COUCH_POTATO.name()
+//                )
+//        );
+//    }
 
     public static List<User> getAllUsers() {
         return new ArrayList<>(allUsers.values());
