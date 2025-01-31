@@ -225,9 +225,11 @@ fun MatchCard(match: UserFetch, onClick: () -> Unit) {
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = match.addInfo.ifEmpty { "No additional info" }, // Fallback if info is empty
-                fontSize = 14.sp,
+                text = match.userStatus.ifEmpty { "No additional info" }, // Fallback if info is empty
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
                 color = Color.Black
             )
         }

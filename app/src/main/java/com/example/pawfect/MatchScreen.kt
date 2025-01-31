@@ -80,9 +80,7 @@ fun MatchScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
         val currentUserUid = auth.currentUser?.uid
-
         if (currentUserUid != null) {
-            // Listen for changes in HaveSeen collection
             firestore.collection("HaveSeen")
                 .document(currentUserUid)
                 .addSnapshotListener { snapshot, e ->
@@ -95,7 +93,6 @@ fun MatchScreen(navController: NavHostController) {
                     seenUserIds.clear()
                     seenUserIds.addAll(seenIds)
 
-                    // Fetch all users whenever HaveSeen changes
                     fetchUsers(currentUserUid, seenUserIds, firestore, filteredMatches) {
                         swipesRemaining = it
                     }
@@ -105,78 +102,107 @@ fun MatchScreen(navController: NavHostController) {
         }
     }
 
-    // Display users or loading state
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFFFFF4F8) // Background color
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (swipesRemaining > 0 && filteredMatches.isNotEmpty()) {
-                DisplayUserCards(
-                    userData = filteredMatches.map { it.first },
-                    navController = navController,
-                    onSwipe = { swipesRemaining-- },
-                    onMatchConfirmed = { showMatchAnimation = true } // Trigger animation
-                )
-            } else {
-                val imageLoader = ImageLoader.Builder(LocalContext.current)
-                    .components {
-                        add(GifDecoder.Factory())
-                    }
-                    .build()
-                Box(
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start
+        ) {
+            // 🔹 **Back Button Row** (Same as FriendListScreen)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.back_arrow),
+                    contentDescription = "Back",
+                    tint = Color.Black,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(color = Color(0xFFFFF4F8), shape = RoundedCornerShape(16.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Oops! You've swiped through all the paws!\nCheck back later for more doggy matches 🐾",
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF4081),
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(400.dp) // Adjust height to make the GIF taller
-                                .clip(RoundedCornerShape(16.dp)) // Ensure rounded corners
-                                .background(color = Color(0xFFFFC1CC)), // Optional background color for contrast
-                            contentAlignment = Alignment.Center
+                        .size(32.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(R.raw.sadodogo) // Replace with your actual GIF file
-                                    .build(),
-                                contentDescription = "No more matches",
-                                imageLoader = imageLoader,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                            navController.navigate("profile_screen") // Back navigation
+                        }
+                )
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (swipesRemaining > 0 && filteredMatches.isNotEmpty()) {
+                    DisplayUserCards(
+                        userData = filteredMatches.map { it.first },
+                        navController = navController,
+                        onSwipe = { swipesRemaining-- },
+                        onMatchConfirmed = { showMatchAnimation = true }
+                    )
+                } else {
+                    val imageLoader = ImageLoader.Builder(LocalContext.current)
+                        .components {
+                            add(GifDecoder.Factory())
+                        }
+                        .build()
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(color = Color(0xFFFFF4F8), shape = RoundedCornerShape(16.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Oops! You've swiped through all the paws!\nCheck back later for more doggy matches 🐾",
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF4081),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                textAlign = TextAlign.Center
                             )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(400.dp) // Adjust height to make the GIF taller
+                                    .clip(RoundedCornerShape(16.dp)) // Ensure rounded corners
+                                    .background(color = Color(0xFFFFC1CC)), // Optional background color for contrast
+                                contentAlignment = Alignment.Center
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(R.raw.sadodogo) // Replace with your actual GIF file
+                                        .build(),
+                                    contentDescription = "No more matches",
+                                    imageLoader = imageLoader,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            if (showMatchAnimation) {
-                MatchCelebrationAnimation {
-                    showMatchAnimation = false // Hide animation after it's done
+                if (showMatchAnimation) {
+                    MatchCelebrationAnimation {
+                        showMatchAnimation = false // Hide animation after it's done
+                    }
                 }
             }
         }
     }
 }
+
 
 private fun fetchUsers(
     currentUserUid: String,
