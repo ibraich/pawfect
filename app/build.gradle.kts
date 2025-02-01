@@ -40,6 +40,10 @@ android {
     buildFeatures {
         compose = true
     }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
 }
 
 dependencies {
@@ -55,6 +59,7 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.database.ktx)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,4 +95,5 @@ dependencies {
     implementation("androidx.compose.animation:animation:1.5.0")
 
     implementation("com.google.firebase:firebase-messaging:24.1.0")
+    implementation ("com.google.auth:google-auth-library-oauth2-http:1.18.0")
 }

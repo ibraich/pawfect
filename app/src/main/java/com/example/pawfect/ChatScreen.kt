@@ -1,6 +1,7 @@
 package com.example.pawfect
 
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -53,11 +54,20 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.android.volley.toolbox.JsonObjectRequest
+import com.android.volley.toolbox.Volley
 import com.example.appinterface.R
+import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -71,11 +81,14 @@ fun PreviewChatScreen() {
 
 @Composable
 fun ChatScreen(navController: NavHostController, friendId: String) {
+    val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
     var friend by remember { mutableStateOf<User?>(null) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
     val messages = remember { mutableStateListOf<Message>() }
     var newMessage by remember { mutableStateOf("") }
+    val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     LaunchedEffect(friendId) {
         ChatScreenManager.setChatOpen(friendId)
@@ -91,6 +104,13 @@ fun ChatScreen(navController: NavHostController, friendId: String) {
         db.collection("Users").document(friendId).get()
             .addOnSuccessListener { document ->
                 friend = document.toObject(User::class.java)
+            }
+    }
+
+    LaunchedEffect(Unit) {
+        db.collection("Users").document(currentUserUid).get()
+            .addOnSuccessListener { document ->
+                currentUser = document.toObject(User::class.java)
             }
     }
 
@@ -204,6 +224,14 @@ fun ChatScreen(navController: NavHostController, friendId: String) {
                 Button(onClick = {
                     if (newMessage.isNotBlank()) {
                         sendMessage(currentUserUid, friendId, newMessage, db)
+                        val messageAsNotification = newMessage
+                        coroutineScope.launch {
+                            sendFCMMessage(context,
+                                getChatId(currentUserUid, friendId),
+                                currentUserUid,
+                                friend?.fcmToken ?: "empty",
+                                "New message from ${currentUser?.dogName}", messageAsNotification)
+                        }
                         newMessage = ""
                     }
                 }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAA87A5))) {
@@ -285,5 +313,82 @@ fun getFirebaseServerTime(callback: (Long?) -> Unit) {
         }
     }.addOnFailureListener {
         callback(null)
+    }
+}
+
+fun getAccessToken(context: Context): String? {
+    try {
+        val credentials = GoogleCredentials.fromStream(
+            context.assets.open("pawfect-match-2.json")
+        ).createScoped(listOf("https://www.googleapis.com/auth/cloud-platform"))
+
+        credentials.refreshIfExpired()
+        val tokenValue = credentials.accessToken?.tokenValue
+
+        if (tokenValue == null) {
+            Log.e("FCM", "Access Token is null.")
+            return null
+        }
+
+        Log.d("FCM", "Access Token retrieved successfully.")
+        return tokenValue
+    } catch (e: IOException) {
+        Log.e("FCM", "Failed to get access token", e)
+        return null
+    }
+}
+
+suspend fun sendFCMMessage(context: Context,
+                           chatId: String,
+                           senderId: String,
+                           fcmToken: String,
+                           title: String,
+                           message: String) {
+
+    val accessToken = withContext(Dispatchers.IO) {
+        getAccessToken(context)
+    }
+
+    if (accessToken == null) {
+        Log.e("FCM", "Access Token is null. Notification not sent.")
+        return
+    }
+
+    val url = "https://fcm.googleapis.com/v1/projects/pawfect-match-30a93/messages:send"
+
+    val json = JSONObject().apply {
+        put("message", JSONObject().apply {
+            put("token", fcmToken)
+
+            put("notification", JSONObject().apply {
+                put("title", title)
+                put("body", message)
+            })
+
+            put("data", JSONObject().apply {
+                put("chatId", chatId)
+                put("friendId", senderId)
+            })
+        })
+    }
+
+    withContext(Dispatchers.IO) {
+        val request = object : JsonObjectRequest(Method.POST, url, json,
+            { response ->
+                Log.d("FCM", "Notification sent successfully: $response")
+                Log.d("FCM", "The data that was sent: $json")
+
+            },
+            { error ->
+                Log.e("FCM", "Failed to send notification", error)
+            }) {
+            override fun getHeaders(): MutableMap<String, String> {
+                return mutableMapOf(
+                    "Authorization" to "Bearer $accessToken",
+                    "Content-Type" to "application/json"
+                )
+            }
+        }
+        Volley.newRequestQueue(context).add(request)
     }
 }
