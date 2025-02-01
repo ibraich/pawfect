@@ -12,5 +12,6 @@ class User(
     val ownerName: String = "",
     val ownerAge: String = "",
     val dogPersonality: String = "",
-    val location: GeoPoint = GeoPoint(49.9327659, 11.5687332)
+    val location: GeoPoint = GeoPoint(49.9327659, 11.5687332),
+    val fcmToken: String = ""
 )

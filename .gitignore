@@ -15,4 +15,4 @@
 local.properties
 /.idea/
 gradle/libs.versions.toml
-
+app/src/main/assets/pawfect-match-2.json

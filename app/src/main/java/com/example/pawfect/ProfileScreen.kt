@@ -1,6 +1,6 @@
 package com.example.pawfect
 
-import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,15 +42,19 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
-import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.example.appinterface.R
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.getField
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.net.URL
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Preview
 @Composable
@@ -89,6 +93,8 @@ fun ProfileScreen(navController: NavHostController) {
                 dogName = "Error"
                 userInfo = "Failed to fetch data"
             }
+
+        getFCMToken()
     }
 
     Surface(
@@ -214,5 +220,44 @@ fun ProfileScreen(navController: NavHostController) {
                 )
             }
         }
+    }
+}
+
+fun getFCMToken() {
+    FirebaseMessaging.getInstance().token
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                if (token != null) {
+                    updateTokenInFirestore(token)
+                } else {
+                    Log.w("FCM Token", "FCM token is null.")
+                }
+            } else {
+                Log.e("FCM Token", "Fetching FCM registration token failed", task.exception)
+            }
+        }
+}
+
+private fun updateTokenInFirestore(token: String) {
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    if (currentUser != null) {
+        val db = FirebaseFirestore.getInstance()
+        val userRef = db.collection("Users").document(currentUser.uid)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                userRef.update("fcmToken", token)
+                withContext(Dispatchers.Main) {
+                    Log.d("FCM Token", "FCM token updated in Firestore.")
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("FCM Token", "Error updating FCM token in Firestore", e)
+                }
+            }
+        }
+    } else {
+        Log.w("FCM Token", "No current user found.")
     }
 }
