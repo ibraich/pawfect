@@ -231,7 +231,7 @@ fun PlanActivityScreen(navController: NavHostController, friendId: String) {
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    navController.navigate("gemini_wait_screen")
+                                    navController.navigate("gemini_wait_screen/$friendId")
                                 }
                         )
                     }
@@ -255,10 +255,9 @@ fun PlanActivityScreen(navController: NavHostController, friendId: String) {
 
                     // Common puppies button
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.baby_cart),
-                            contentDescription = "Stroller",
-                            tint = Color.Black,
+                        Image(
+                            painter = painterResource(R.drawable.dog_puppy),
+                            contentDescription = "Dog Puppy",
                             modifier = Modifier
                                 .size(40.dp)
                                 .clickable(
@@ -268,6 +267,7 @@ fun PlanActivityScreen(navController: NavHostController, friendId: String) {
                                     navController.navigate("common_puppies_screen/$currentUserUid/$friendId")
                                 }
                         )
+
                     }
                 }
             } else {

@@ -54,11 +54,11 @@ import com.google.android.gms.location.LocationServices
 @Preview
 @Composable
 fun GeminiWaitScreen() {
-    GeminiWaitScreen(rememberNavController())
+    GeminiWaitScreen(rememberNavController(), "1")
 }
 
 @Composable
-fun GeminiWaitScreen(navController: NavHostController) {
+fun GeminiWaitScreen(navController: NavHostController, friendId: String?) {
     val context = LocalContext.current
     var userlatitude = 0.0
     var userlongitude = 0.0
@@ -78,7 +78,7 @@ fun GeminiWaitScreen(navController: NavHostController) {
                             " ${userlatitude}, ${userlongitude}"
                     model.getResponse(query, object : ResponseCallback {
                         override fun onResponse(response: String) {
-                            navController.navigate("walk_path_screen/$response")
+                            navController.navigate("walk_path_screen/$response/$friendId")
                         }
 
                         override fun onError(throwable: Throwable) {
@@ -87,7 +87,7 @@ fun GeminiWaitScreen(navController: NavHostController) {
                          [49.9213951, 11.5579074]]
                          """.trimIndent()
 
-                            navController.navigate("walk_path_screen/$coordinatesJson")
+                            navController.navigate("walk_path_screen/$coordinatesJson/$friendId")
                         }
                     }
                     )
@@ -100,7 +100,6 @@ fun GeminiWaitScreen(navController: NavHostController) {
             // Permission denied, handle accordingly
             Log.e("Location", "Location permission is required")
             navController.navigate("map_screen")
-
         }
     }
 
