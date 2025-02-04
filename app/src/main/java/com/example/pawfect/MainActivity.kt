@@ -118,14 +118,25 @@ fun MyApp() {
             UserRoutesScreen(navController)
         }
 
-        composable("walk_path_screen/{coordinates}") { backStackEntry ->
+        composable(
+            route = "walk_path_screen/{coordinates}/{friendId}",
+            arguments = listOf(
+                navArgument("coordinates") { type = NavType.StringType },
+                navArgument("friendId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
             val coordinates = backStackEntry.arguments?.getString("coordinates")
-            WalkPathScreen(navController, coordinates)
+            val friendId = backStackEntry.arguments?.getString("friendId")
+            WalkPathScreen(navController, coordinates, friendId)
         }
 
 
-        composable("gemini_wait_screen") {
-            GeminiWaitScreen(navController)
+        composable(
+            route = "gemini_wait_screen/{friendId}",
+            arguments = listOf(navArgument("friendId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val friendId = backStackEntry.arguments?.getString("friendId")
+            GeminiWaitScreen(navController, friendId)
         }
     }
 }

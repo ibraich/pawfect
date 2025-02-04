@@ -102,13 +102,18 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.drawable.dog_loading_thinking)
-                        .build(),
-                    contentDescription = "Loading Animation",
-                    modifier = Modifier.size(100.dp)
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(R.drawable.dog_loading_thinking)
+                            .build(),
+                        contentDescription = "Loading...",
+                        modifier = Modifier.size(200.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Calibrating personality using AI...", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                }
+
             }
         } else if (calibratedDogPersonality.isEmpty()) {
             isLoading = true

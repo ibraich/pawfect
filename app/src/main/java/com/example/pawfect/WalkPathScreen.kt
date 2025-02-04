@@ -50,8 +50,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 @Composable
-fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
-    val currentUser = Database.getUserById("0")
+fun WalkPathScreen(navController: NavHostController, coordinates: String?, friendId: String?) {
 
     val coordinatesList = parseCoordinates(coordinates)
 
@@ -99,7 +98,7 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?) {
                         .size(32.dp)
                         .clickable ( indication = null,
                             interactionSource = remember { MutableInteractionSource() })
-                        { navController.navigateUp() }
+                        { navController.navigate("plan_activity_screen/$friendId") }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(

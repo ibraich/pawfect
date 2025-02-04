@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,7 +47,9 @@ import com.example.appinterface.R
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import androidx.compose.ui.text.style.TextAlign
+import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.gif.GifDecoder
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.firebase.auth.ktx.auth
@@ -63,6 +66,12 @@ fun FriendListScreen(navController: NavHostController) {
     val firestore = Firebase.firestore
     val auth = Firebase.auth
     val matchesList = remember { mutableStateListOf<UserFetch>() } // Store matched users
+
+    val imageLoader = ImageLoader.Builder(LocalContext.current)
+        .components {
+            add(GifDecoder.Factory())
+        }
+        .build()
 
     // Fetch matches from Firestore
     LaunchedEffect(Unit) {
@@ -165,17 +174,20 @@ fun FriendListScreen(navController: NavHostController) {
                 )
             }
 
-            // Matches List
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                items(matchesList) { match ->
-                    MatchCard(match = match) {
-                        navController.navigate("plan_activity_screen/${match.id}") // Pass match.id as a string
+            if (matchesList.isEmpty()) {
+                NoMatchesView(imageLoader)
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    items(matchesList) { match ->
+                        MatchCard(match = match) {
+                            navController.navigate("plan_activity_screen/${match.id}")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
@@ -227,11 +239,50 @@ fun MatchCard(match: UserFetch, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = match.userStatus.ifEmpty { "No additional info" }, // Fallback if info is empty
+                text = match.userStatus.ifEmpty { "No additional info" },
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.Black
             )
         }
+    }
+}
+
+
+@Composable
+fun NoMatchesView(imageLoader: ImageLoader) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .background(Color(0xFFFFC1CC), shape = RoundedCornerShape(16.dp))
+                .fillMaxWidth()
+                .aspectRatio(0.8f)
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(R.raw.sad_puppy)
+                    .build(),
+                contentDescription = "No Matches",
+                imageLoader = imageLoader,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "No matches yet! 🐶",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
     }
 }
