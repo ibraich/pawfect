@@ -50,5 +50,29 @@ object FirestoreHelper {
             }
     }
 
+    fun fetchDocument(
+        collectionName: String,
+        documentId: String,
+        onSuccess: (UserFetch?) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val db = Firebase.firestore
+        val documentRef = db.collection(collectionName).document(documentId)
+
+        documentRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val user = document.toObject(UserFetch::class.java)
+                    onSuccess(user?.copy(id = documentId))
+                } else {
+                    onSuccess(null)
+                }
+            }
+            .addOnFailureListener { exception ->
+                onFailure("Error fetching document: ${exception.message}")
+            }
+    }
+
+
 
 }

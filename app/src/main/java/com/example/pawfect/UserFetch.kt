@@ -1,5 +1,10 @@
 package com.example.pawfect
 
+import androidx.annotation.Keep
+import com.google.firebase.database.IgnoreExtraProperties
+
+@Keep
+@IgnoreExtraProperties
 data class UserFetch(
     val id: String = "",
     val ownerName: String = "",
@@ -13,5 +18,8 @@ data class UserFetch(
     val location: String = "",
     val dogPersonality: String = "",
     val dogProfileImage: String = "",
-    val userStatus: String = ""
-)
+    val userStatus: String = "",
+    val offspringImageUrl: String = ""
+){
+    constructor() : this("", "", "", "", "", "", "", "", "", "", "", "", "", "")
+}
