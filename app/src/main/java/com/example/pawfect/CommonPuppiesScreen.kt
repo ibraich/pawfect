@@ -92,9 +92,7 @@ fun CommonPuppiesScreen(navController: NavHostController, currentUserId: String,
                     isLoading.value = true
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            //val openAiImageUrl = openAI.generateMatchOffspringImage(user1, user2)
-
-                            val openAiImageUrl = "https://firebasestorage.googleapis.com/v0/b/pawfect-match-30a93.firebasestorage.app/o/test%2Fai_offspring_image.png?alt=media&token=a1c70fee-a87a-4379-a213-752548ef6577"
+                            val openAiImageUrl = openAI.generateMatchOffspringImage(user1, user2)
 
                             val bitmap = ImageProcessor.downloadAndCacheImage(context, openAiImageUrl.toString())
 
