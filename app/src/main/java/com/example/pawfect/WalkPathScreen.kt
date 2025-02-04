@@ -176,7 +176,7 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
                     .size(56.dp)
                     .background(color = Color(0x8032CD32), shape = CircleShape)
                     .clickable( indication = null, interactionSource = remember { MutableInteractionSource() })
-                    { navController.navigate("gemini_wait_screen") },
+                    { navController.navigate("gemini_wait_screen/$friendId") },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
