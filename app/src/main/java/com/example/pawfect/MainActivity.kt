@@ -76,8 +76,19 @@ fun MyApp() {
                 PlanActivityScreen(navController, friendId)
             }
         }
-        composable("common_puppies_screen") {
-            CommonPuppiesScreen(navController)
+        composable(
+            route = "common_puppies_screen/{currentUserId}/{friendId}",
+            arguments = listOf(
+                navArgument("currentUserId") { type = NavType.StringType },
+                navArgument("friendId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val currentUserId = backStackEntry.arguments?.getString("currentUserId")
+            val friendId = backStackEntry.arguments?.getString("friendId")
+
+            if (currentUserId != null && friendId != null) {
+                CommonPuppiesScreen(navController, currentUserId, friendId)
+            }
         }
 
         composable(

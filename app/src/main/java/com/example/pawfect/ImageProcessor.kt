@@ -1,10 +1,19 @@
 package com.example.pawfect
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Base64
 import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 class ImageProcessor {
@@ -35,5 +44,58 @@ class ImageProcessor {
            }
             return null
         }
+
+
+        fun getCachedImageFile(context: Context, imageUrl: String): File {
+            val cacheDir = File(context.cacheDir, "image_cache")
+            if (!cacheDir.exists()) cacheDir.mkdirs()
+
+            val fileName = imageUrl.hashCode().toString() + ".jpg"
+            return File(cacheDir, fileName)
+        }
+
+
+        suspend fun downloadAndCacheImage(context: Context, imageUrl: String): Bitmap? {
+            return withContext(Dispatchers.IO) {
+                val cachedFile = getCachedImageFile(context, imageUrl)
+
+                if (cachedFile.exists()) {
+                    return@withContext BitmapFactory.decodeFile(cachedFile.absolutePath)
+                }
+
+                try {
+                    val url = URL(imageUrl)
+                    val connection = url.openConnection() as HttpURLConnection
+                    connection.doInput = true
+                    connection.connect()
+                    val inputStream: InputStream = connection.inputStream
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+
+                    FileOutputStream(cachedFile).use { out ->
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                    }
+
+                    bitmap
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+        }
+
+        fun saveBitmapToCacheAndGetUri(context: Context, bitmap: Bitmap): Uri? {
+            return try {
+                val file = File(context.cacheDir, "ai_generated_offspring_image.jpg")
+                val outputStream = FileOutputStream(file)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                outputStream.flush()
+                outputStream.close()
+                Uri.fromFile(file)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+
     }
 }

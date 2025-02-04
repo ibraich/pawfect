@@ -61,10 +61,10 @@ fun PlanActivityScreen(navController: NavHostController, friendId: String) {
     val auth = Firebase.auth
     val currentUser = remember { mutableStateOf<UserFetch?>(null) }
     val friendUser = remember { mutableStateOf<UserFetch?>(null) }
+    val currentUserUid = auth.currentUser?.uid
 
     // Fetch current user and friend user data
     LaunchedEffect(Unit) {
-        val currentUserUid = auth.currentUser?.uid
 
         if (currentUserUid != null) {
             // Fetch current user
@@ -265,7 +265,7 @@ fun PlanActivityScreen(navController: NavHostController, friendId: String) {
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    navController.navigate("common_puppies_screen")
+                                    navController.navigate("common_puppies_screen/$currentUserUid/$friendId")
                                 }
                         )
                     }

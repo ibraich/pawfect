@@ -96,4 +96,11 @@ dependencies {
 
     implementation("com.google.firebase:firebase-messaging:24.1.0")
     implementation ("com.google.auth:google-auth-library-oauth2-http:1.18.0")
+
+    implementation(platform("com.aallam.openai:openai-client-bom:3.8.2"))
+
+    // define dependencies without versions
+    implementation("com.aallam.openai:openai-client")
+    runtimeOnly("io.ktor:ktor-client-okhttp")
+
 }
