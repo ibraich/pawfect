@@ -2,7 +2,6 @@ package com.example.pawfect
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +41,10 @@ import coil3.compose.AsyncImage
 import coil3.gif.GifDecoder
 import coil3.request.ImageRequest
 import com.example.appinterface.R
+import android.util.Log
+import androidx.compose.runtime.LaunchedEffect
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 @Preview
 @Composable
@@ -50,34 +54,48 @@ fun PreviewUserRoutesScreen() {
 
 @Composable
 fun UserRoutesScreen(navController: NavHostController) {
+    val auth = Firebase.auth
+    val userId = auth.currentUser?.uid ?: return
+
+    val suggestedRoutes = remember { mutableStateOf<List<Map<String, Double>>>(emptyList()) }
+    val isLoading = remember { mutableStateOf(true) }
+
+    fun fetchUserRoutes() {
+        FirestoreHelper.getUserSuggestedRoutes(
+            userId = userId,
+            onSuccess = { routes ->
+                suggestedRoutes.value = routes
+                isLoading.value = false
+            },
+            onFailure = { error ->
+                Log.e("Firestore", "Error fetching routes: $error")
+                isLoading.value = false
+            }
+        )
+    }
+
+    LaunchedEffect (Unit) {
+        fetchUserRoutes()
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFFFFF4F8)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            // Back button and title
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = "Back",
                     tint = Color.Black,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable ( indication = null,
-                            interactionSource = remember { MutableInteractionSource() })
-                        { navController.navigateUp() }
+                    modifier = Modifier.size(32.dp).clickable { navController.navigateUp() }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -90,54 +108,25 @@ fun UserRoutesScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            val imageLoader = ImageLoader.Builder(LocalContext.current)
-                .components {
-                    add(GifDecoder.Factory())
+            if (isLoading.value) {
+                Text("Loading routes...", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+            } else if (suggestedRoutes.value.isEmpty()) {
+                NoRoutesPlaceholder()
+            } else {
+                // Display routes one by one
+                suggestedRoutes.value.forEach { route ->
+                    RouteItem(route)
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                .build()
-
-            // Image
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .background(color = Color(0xFFFFC1CC), shape = RoundedCornerShape(16.dp))
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .aspectRatio(0.8f)
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(R.raw.sad_dog)
-                        .build(),
-                    contentDescription = "Sad dog",
-                    imageLoader = imageLoader,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Placeholder text
-            Text(
-                text = "No one has suggested going for a walk yet :'(",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFFF4081),
-                modifier = Modifier.padding(horizontal = 16.dp),
-                textAlign = TextAlign.Center
-            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Refresh button
             Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(color = Color(0x8032CD32), shape = CircleShape)
-                    .clickable {
-                        // TODO refresh logic here
-                    },
+                modifier = Modifier.size(56.dp)
+                    .background(Color(0x8032CD32), shape = CircleShape)
+                    .clickable { fetchUserRoutes() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -147,6 +136,55 @@ fun UserRoutesScreen(navController: NavHostController) {
                     modifier = Modifier.size(32.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun NoRoutesPlaceholder() {
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .components { add(GifDecoder.Factory()) }
+        .build()
+
+    Box(
+        modifier = Modifier.padding(horizontal = 16.dp)
+            .background(Color(0xFFFFC1CC), shape = RoundedCornerShape(16.dp))
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .aspectRatio(0.8f)
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(context).data(R.raw.sad_dog).build(),
+            contentDescription = "Sad dog",
+            imageLoader = imageLoader,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Text(
+        text = "No one has suggested going for a walk yet :'(",
+        fontSize = 25.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFFFF4081),
+        modifier = Modifier.padding(horizontal = 16.dp),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun RouteItem(route: Map<String, Double>) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .background(Color(0xFFFFE0B2), shape = RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        Column {
+            Text("Start: ${route["startLatitude"]}, ${route["startLongitude"]}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Stop: ${route["stopLatitude"]}, ${route["stopLongitude"]}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -1,13 +1,9 @@
 package com.example.pawfect
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,11 +44,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 @Preview
 @Composable
@@ -67,83 +58,112 @@ fun CommonPuppiesScreen(navController: NavHostController, currentUserId: String,
     val friendUser = remember { mutableStateOf<UserFetch?>(null) }
 
     val firestoreHelper = remember { FirestoreHelper }
-
     val context = LocalContext.current
     val openAI = remember { OpenAI(context) }
+
     val imageUrl = remember { mutableStateOf<String?>(null) }
     val isLoading = remember { mutableStateOf(true) }
+    val matchId = remember { mutableStateOf<String?>(null) }
 
-    var bitmapImage = remember { mutableStateOf<Bitmap?>(null) }
+    val bitmapImage = remember { mutableStateOf<Bitmap?>(null) }
 
+    fun generateAndStoreOffspringImage(
+        user1: UserFetch,
+        user2: UserFetch
+    ) {
+        isLoading.value = true
 
-        fun fetchImageIfReady() {
-            val user1 = currentUser.value
-            val user2 = friendUser.value
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val openAiImageUrl = openAI.generateMatchOffspringImage(user1, user2)
+                val bitmap = ImageProcessor.downloadAndCacheImage(context, openAiImageUrl.toString())
 
-            if (user1 != null && user2 != null) {
-                val validUser1Image = user1.offspringImageUrl.takeIf { it.isNotBlank() }
-                val validUser2Image = user2.offspringImageUrl.takeIf { it.isNotBlank() }
-                val existingImageUrl = validUser1Image ?: validUser2Image
+                if (bitmap != null) {
+                    val fileUri = ImageProcessor.saveBitmapToCacheAndGetUri(context, bitmap)
 
-                if (existingImageUrl != null) {
-                    imageUrl.value = existingImageUrl
-                    isLoading.value = false
-                } else {
-                    isLoading.value = true
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            val openAiImageUrl = openAI.generateMatchOffspringImage(user1, user2)
+                    if (fileUri != null) {
+                        val fileName = "offspring_${System.currentTimeMillis()}.jpg"
 
-                            val bitmap = ImageProcessor.downloadAndCacheImage(context, openAiImageUrl.toString())
-
-                            if (bitmap != null) {
-                                val fileUri = ImageProcessor.saveBitmapToCacheAndGetUri(context, bitmap)
-
-                                if (fileUri != null) {
-                                    val fileName = "offspring_${System.currentTimeMillis()}.jpg"
-
-                                    FirebaseStorageHelper.uploadFile("users/$currentUserId/offspringImages",
-                                        fileName,
-                                        fileUri as Uri,
-                                        onSuccess = { downloadUrl ->
-                                            FirestoreHelper.updateFields(
-                                                collectionName = "Users",
-                                                documentId = currentUserId,
-                                                updates = mapOf("offspringImageUrl" to downloadUrl.toString()),
-                                                context = context
-                                            )
-                                            imageUrl.value = downloadUrl.toString()
-                                        },
-                                        onFailure = { error ->
-                                            Log.e("Firebase Upload", "Upload failed: $error")
-                                        }
-                                    )
-
-                                } else {
-                                    Log.e("Bitmap Conversion", "Failed to convert Bitmap to Uri")
-                                    withContext(Dispatchers.Main) { isLoading.value = false }
-                                }
-                            } else {
-                                Log.e("AI Image", "Failed to download AI-generated image")
-                                withContext(Dispatchers.Main) { isLoading.value = false }
+                        FirebaseStorageHelper.uploadFile(
+                            "users/$currentUserId/offspringImages",
+                            fileName,
+                            fileUri,
+                            onSuccess = { downloadUrl ->
+                                FirestoreHelper.updateOffspringImageUrl(
+                                    matchId.value!!,
+                                    downloadUrl.toString(),
+                                    onSuccess = { Log.d("Firestore", "offspringImageUrl updated successfully!") },
+                                    onFailure = { error -> Log.e("Firestore", "Failed to update: $error") }
+                                )
+                                imageUrl.value = downloadUrl.toString()
+                            },
+                            onFailure = { error ->
+                                Log.e("Firebase Upload", "Upload failed: $error")
+                                isLoading.value = false
                             }
-                        } catch (e: Exception) {
-                            Log.e("AI Image", "Error generating image: ${e.message}")
-                            withContext(Dispatchers.Main) { isLoading.value = false }
-                        }
+                        )
+                    } else {
+                        Log.e("Bitmap Conversion", "Failed to convert Bitmap to Uri")
+                        withContext(Dispatchers.Main) { isLoading.value = false }
                     }
+                } else {
+                    Log.e("AI Image", "Failed to download AI-generated image")
+                    withContext(Dispatchers.Main) { isLoading.value = false }
                 }
+            } catch (e: Exception) {
+                Log.e("AI Image", "Error generating image: ${e.message}")
+                withContext(Dispatchers.Main) { isLoading.value = false }
             }
         }
+    }
 
-    LaunchedEffect (Unit) {
+    fun fetchImageIfReady() {
+        val user1 = currentUser.value
+        val user2 = friendUser.value
+
+        if (user1 != null && user2 != null) {
+            // Step 1: Fetch Match ID
+            FirestoreHelper.getMatchIdForUsers(
+                user1Id = currentUserId,
+                user2Id = friendId,
+                onSuccess = { id ->
+                    matchId.value = id
+                    Log.d("Firestore", "Match ID retrieved: ${matchId.value}")
+
+                    // Step 2: Fetch offspringImageUrl from Firestore
+                    FirestoreHelper.getOffspringImageUrl(
+                        matchId.value!!,
+                        onSuccess = { existingImageUrl ->
+                            if (!existingImageUrl.isNullOrBlank()) {
+                                imageUrl.value = existingImageUrl
+                                isLoading.value = false
+                                Log.d("Firestore", "Using existing offspringImageUrl: $existingImageUrl")
+                            } else {
+                                generateAndStoreOffspringImage(user1, user2)
+                            }
+                        },
+                        onFailure = { error ->
+                            Log.e("Firestore", "Error fetching offspringImageUrl: $error")
+                            isLoading.value = false
+                        }
+                    )
+                },
+                onFailure = { error ->
+                    Log.e("Firestore", "Match not found: $error")
+                    isLoading.value = false
+                }
+            )
+        }
+    }
+
+    LaunchedEffect(Unit) {
         firestoreHelper.fetchDocument(
             collectionName = "Users",
             documentId = currentUserId,
             onSuccess = { user ->
                 currentUser.value = user
                 fetchImageIfReady()
-                        },
+            },
             onFailure = { error -> Log.e("Firestore", "Error fetching current user: $error") }
         )
 
@@ -153,10 +173,9 @@ fun CommonPuppiesScreen(navController: NavHostController, currentUserId: String,
             onSuccess = { user ->
                 friendUser.value = user
                 fetchImageIfReady()
-                        },
+            },
             onFailure = { error -> Log.e("Firestore", "Error fetching friend user: $error") }
         )
-
     }
 
     LaunchedEffect(imageUrl.value) {
@@ -168,49 +187,32 @@ fun CommonPuppiesScreen(navController: NavHostController, currentUserId: String,
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFFFF4F8)
-    ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFFFFF4F8)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            // Back button
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.back_arrow),
                     contentDescription = "Back",
                     tint = Color.Black,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clickable( indication = null,
-                            interactionSource = remember { MutableInteractionSource() })
-                        { navController.navigateUp() }
+                    modifier = Modifier.size(32.dp).clickable { navController.navigateUp() }
                 )
             }
-
             Spacer(modifier = Modifier.height(32.dp))
-
-            // Title
             Text(
                 text = "${currentUser.value?.dogName} and ${friendUser.value?.dogName}",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Image Section
             if (isLoading.value) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(
@@ -224,44 +226,11 @@ fun CommonPuppiesScreen(navController: NavHostController, currentUserId: String,
                     Text("Generating image...", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
                 }
             } else {
-
                 bitmapImage.value?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "Future Puppies",
-                        modifier = Modifier
-                            .size(350.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
+                    Image(bitmap = it.asImageBitmap(), contentDescription = "Future Puppies",
+                        modifier = Modifier.size(350.dp).clip(RoundedCornerShape(16.dp)), contentScale = ContentScale.Crop)
                 }
-
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Subtitle
-            Text(
-                text = "Your puppies may\nlook something like this ;)",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFFF4081),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Disclaimer
-            Text(
-                text = "AI can make mistakes. We are not responsible for the final result.",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
         }
     }
 }
-
-
