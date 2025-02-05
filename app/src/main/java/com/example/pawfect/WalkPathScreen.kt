@@ -173,41 +173,51 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Refresh button
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(color = Color(0x8032CD32), shape = CircleShape)
-                    .clickable( indication = null, interactionSource = remember { MutableInteractionSource() })
-                    { navController.navigate("gemini_wait_screen/$friendId") },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_update),
-                    contentDescription = "Refresh",
-                    tint = Color.Black,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
+            Row (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            )
+            {
 
-            // Accept Route Button
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(color = Color(0xFFFF9800), shape = CircleShape)
-                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                        if (userId != null && friendId != null) {
-                            saveRouteForMatch(userId, friendId, coordinatesList)
-                        }
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_plus),
-                    contentDescription = "Accept Route",
-                    tint = Color.Black,
-                    modifier = Modifier.size(32.dp)
-                )
+                // Accept Route Button
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(color = Color(0xFFFF9800), shape = CircleShape)
+                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                            if (userId != null && friendId != null) {
+                                saveRouteForMatch(userId, friendId, coordinatesList)
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_plus),
+                        contentDescription = "Suggest Route",
+                        tint = Color.Black,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                // Refresh button
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(color = Color(0x8032CD32), shape = CircleShape)
+                        .clickable( indication = null, interactionSource = remember { MutableInteractionSource() })
+                        { navController.navigate("gemini_wait_screen/$friendId") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_update),
+                        contentDescription = "Refresh",
+                        tint = Color.Black,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(32.dp))
+
             }
         }
     }
