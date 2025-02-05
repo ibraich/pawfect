@@ -31,7 +31,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -222,8 +221,8 @@ fun CommonPuppiesScreen(navController: NavHostController, currentUserId: String,
                         contentDescription = "Loading...",
                         modifier = Modifier.size(200.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Generating image...", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("Generating Offspring image using AI...", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
                 }
             } else {
                 bitmapImage.value?.let {

@@ -22,8 +22,9 @@ class OpenAI(val context: Context) {
     suspend fun generateMatchOffspringImage(currentUser: UserFetch, friendUser: UserFetch): String? {
 
         val prompt = """
-    Generate an image of one or two puppies that are the hypothetical offspring of the following two dogs:
+    Generate a **cute, artistic, and visually appealing** image of one or two **puppies**, representing the hypothetical offspring of the following two parent dogs:
     
+    ### **Parent Dogs:**  
     - **Dog 1**  
       - Name: ${currentUser.dogName}  
       - Age: ${currentUser.dogAge}  
@@ -36,12 +37,15 @@ class OpenAI(val context: Context) {
       - Breed: ${friendUser.dogBreed}  
       - Personality: ${friendUser.dogPersonality}  
     
-    **Puppy Description:**  
-    - The puppy (or puppies) should have a mix of physical traits from both parent dogs.  
-    - The appearance should be **adorable and playful**.  
-    - The fur color, eye shape, size, and other details should be an **organic blend** of both parent dogs.
+    ### **Puppy Appearance & Style:**  
+    - The puppy (or puppies) should be a **blend of both parent dogs’ breeds and physical features**, reflecting an adorable combination.  
+    - Use a **art style** with bright, playful colors.  
+    - Their **fur patterns, ear shapes, and facial features should be a creative mix** of both parents.  
+    - Expressions should be **playful, happy, and full of energy** to convey their personality.  
     
-        """.trimIndent()
+    Generate a **fun and visually delightful cartoon-style image** that highlights the unique blend of both parent dogs.
+""".trimIndent()
+
 
         val images: List<ImageURL> = openai.imageURL(
             creation = ImageCreation(

@@ -191,7 +191,7 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
                         append(calibratedDogPersonality)
                     }
                 },
-                fontSize = 30.sp,
+                fontSize = 25.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 textAlign = TextAlign.Center

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -43,6 +42,12 @@ import coil3.request.ImageRequest
 import com.example.appinterface.R
 import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -57,14 +62,20 @@ fun UserRoutesScreen(navController: NavHostController) {
     val auth = Firebase.auth
     val userId = auth.currentUser?.uid ?: return
 
-    val suggestedRoutes = remember { mutableStateOf<List<Map<String, Double>>>(emptyList()) }
+    val suggestedRoutes = remember { mutableStateOf<List<List<LatLng>>>(emptyList()) }
     val isLoading = remember { mutableStateOf(true) }
+    val currentIndex = remember { mutableStateOf(0) }
 
     fun fetchUserRoutes() {
         FirestoreHelper.getUserSuggestedRoutes(
             userId = userId,
             onSuccess = { routes ->
-                suggestedRoutes.value = routes
+                suggestedRoutes.value = routes.map { route ->
+                    listOf(
+                        LatLng(route["startLatitude"] ?: 0.0, route["startLongitude"] ?: 0.0),
+                        LatLng(route["stopLatitude"] ?: 0.0, route["stopLongitude"] ?: 0.0)
+                    )
+                }
                 isLoading.value = false
             },
             onFailure = { error ->
@@ -74,7 +85,7 @@ fun UserRoutesScreen(navController: NavHostController) {
         )
     }
 
-    LaunchedEffect (Unit) {
+    LaunchedEffect(Unit) {
         fetchUserRoutes()
     }
 
@@ -87,6 +98,7 @@ fun UserRoutesScreen(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            // Back button and title
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -99,7 +111,7 @@ fun UserRoutesScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Your routes",
+                    text = "Your Routes",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -113,31 +125,72 @@ fun UserRoutesScreen(navController: NavHostController) {
             } else if (suggestedRoutes.value.isEmpty()) {
                 NoRoutesPlaceholder()
             } else {
-                // Display routes one by one
-                suggestedRoutes.value.forEach { route ->
-                    RouteItem(route)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Show Map for the current route
+                    DisplayRouteOnMap(suggestedRoutes.value[currentIndex.value])
+
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    // Navigation between routes
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        if (currentIndex.value > 0) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.back_arrow),
+                                contentDescription = "Previous Suggested Route",
+                                tint = Color.Black,
+                                modifier = Modifier.size(36.dp)
+                                    .clickable { currentIndex.value-- }
+                            )
+                        }
+
+                        if (currentIndex.value < suggestedRoutes.value.size - 1) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.forward_arrow),
+                                contentDescription = "Next Suggested Route",
+                                tint = Color.Black,
+                                modifier = Modifier.size(36.dp)
+                                    .clickable { currentIndex.value++ }
+                            )
+                        }
+                    }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Refresh button
-            Box(
-                modifier = Modifier.size(56.dp)
-                    .background(Color(0x8032CD32), shape = CircleShape)
-                    .clickable { fetchUserRoutes() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_update),
-                    contentDescription = "Refresh",
-                    tint = Color.Black,
-                    modifier = Modifier.size(32.dp)
-                )
             }
         }
     }
+}
+
+@Composable
+fun DisplayRouteOnMap(route: List<LatLng>) {
+    AndroidView(
+        factory = { context ->
+            MapView(context).apply {
+                onCreate(null)
+                onStart()
+                onResume()
+                getMapAsync { googleMap ->
+                    googleMap.uiSettings.isZoomControlsEnabled = true
+                    googleMap.uiSettings.isMyLocationButtonEnabled = true
+
+                    if (route.isNotEmpty()) {
+                        val startPoint = route.first()
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(startPoint, 12f))
+
+                        // Add polyline and markers
+                        googleMap.addPolyline(PolylineOptions().addAll(route).width(8f))
+                        route.forEach { latLng ->
+                            googleMap.addMarker(MarkerOptions().position(latLng).title("Point: ${latLng.latitude}, ${latLng.longitude}"))
+                        }
+                    }
+                }
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp)
+    )
 }
 
 @Composable
@@ -173,18 +226,4 @@ fun NoRoutesPlaceholder() {
         modifier = Modifier.padding(horizontal = 16.dp),
         textAlign = TextAlign.Center
     )
-}
-
-@Composable
-fun RouteItem(route: Map<String, Double>) {
-    Box(
-        modifier = Modifier.fillMaxWidth()
-            .background(Color(0xFFFFE0B2), shape = RoundedCornerShape(12.dp))
-            .padding(12.dp)
-    ) {
-        Column {
-            Text("Start: ${route["startLatitude"]}, ${route["startLongitude"]}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text("Stop: ${route["stopLatitude"]}, ${route["stopLongitude"]}", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-        }
-    }
 }
