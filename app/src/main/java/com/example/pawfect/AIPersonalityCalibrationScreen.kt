@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,6 +51,9 @@ import coil3.request.ImageRequest
 import com.example.appinterface.R
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -66,6 +70,7 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
 
     var calibratedDogPersonality by rememberSaveable { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -145,6 +150,9 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
                         }
                     )
 
+                    var responseReceived = false
+                    val timeoutMillis = 30_000L
+
                     val query = String.format(
                         context.getString(R.string.gemini_dog_personality_query),
                         dogName,
@@ -158,20 +166,38 @@ fun AIPersonalityCalibrationScreen(navController: NavHostController) {
 
                     val imageFiles = mutableListOf<Bitmap>()
 
-                    val imageFile = BitmapFactory.decodeResource(context.resources, R.drawable.doberman)
+                    val imageFile =
+                        BitmapFactory.decodeResource(context.resources, R.drawable.doberman)
                     imageFiles.add(imageFile)
 
-                    model.getResponseForImages(query, imageFiles, object : ResponseCallback {
-                        override fun onResponse(response: String) {
-                            calibratedDogPersonality = response
-                            isLoading = false
+                    coroutineScope.launch {
+                        val job = launch {
+                            model.getResponseForImages(
+                                query,
+                                imageFiles,
+                                object : ResponseCallback {
+                                    override fun onResponse(response: String) {
+                                        calibratedDogPersonality = response
+                                        isLoading = false
+                                        responseReceived = true
+                                    }
+
+                                    override fun onError(throwable: Throwable) {
+                                        throwable.printStackTrace()
+                                        isLoading = false
+                                        calibratedDogPersonality = Personality.SOCIAL_BUTTERFLY.name
+                                        responseReceived = true
+                                    }
+                                })
                         }
 
-                        override fun onError(throwable: Throwable) {
-                            throwable.printStackTrace()
+                        delay(timeoutMillis)
+                        if (!responseReceived) {
+                            job.cancel()
                             isLoading = false
+                            calibratedDogPersonality = Personality.SOCIAL_BUTTERFLY.name
                         }
-                    })
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     isLoading = false
