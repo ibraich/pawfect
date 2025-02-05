@@ -159,7 +159,12 @@ object FirestoreHelper {
             }
     }
 
-    fun storeRoutesInFirestore(matchId: String, newRoutes: List<Map<String, Double>>) {
+    fun storeRoutesInFirestore(
+        matchId: String,
+        newRoutes: List<Map<String, Double>>,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
         val matchDocRef = getFirestoreInstance().collection("Matches").document(matchId)
 
         matchDocRef.get().addOnSuccessListener { document ->
@@ -170,9 +175,11 @@ object FirestoreHelper {
                 matchDocRef.update("suggestedRoutes", updatedRoutes)
                     .addOnSuccessListener {
                         Log.d("Firestore", "Routes updated successfully for match: $matchId")
+                        onSuccess()
                     }
                     .addOnFailureListener { e ->
                         Log.e("Firestore", "Error updating routes: ${e.message}")
+                        onFailure(e)
                     }
             } else {
                 // No existing routes, create new field
@@ -181,13 +188,16 @@ object FirestoreHelper {
                 matchDocRef.set(newRouteData, SetOptions.merge())
                     .addOnSuccessListener {
                         Log.d("Firestore", "Route successfully added to match: $matchId")
+                        onSuccess()
                     }
                     .addOnFailureListener { e ->
                         Log.e("Firestore", "Error storing route: ${e.message}")
+                        onFailure(e)
                     }
             }
         }.addOnFailureListener { e ->
             Log.e("Firestore", "Error fetching match document: ${e.message}")
+            onFailure(e)
         }
     }
 
