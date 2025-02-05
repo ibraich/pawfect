@@ -2,6 +2,7 @@ package com.example.pawfect
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,6 +59,8 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
     val coordinatesList = parseCoordinates(coordinates)
     val auth = Firebase.auth
     val userId = auth.currentUser?.uid
+
+    val context = LocalContext.current
 
     Log.d(TAG, "What do we get: " + coordinates);
 
@@ -186,7 +190,9 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
                         .background(color = Color(0xFFFF9800), shape = CircleShape)
                         .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
                             if (userId != null && friendId != null) {
-                                saveRouteForMatch(userId, friendId, coordinatesList)
+                                saveRouteForMatch(userId, friendId, coordinatesList) {
+                                    Toast.makeText(context, "Route added to suggested walks", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         },
                     contentAlignment = Alignment.Center
@@ -198,6 +204,8 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
                         modifier = Modifier.size(32.dp)
                     )
                 }
+
+                Spacer(modifier = Modifier.width(50.dp))
 
                 // Refresh button
                 Box(
@@ -216,14 +224,17 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
                     )
                 }
 
-                Spacer(modifier = Modifier.width(32.dp))
-
             }
         }
     }
 }
 
-fun saveRouteForMatch(userId: String, friendId: String, coordinatesList: List<LatLng>) {
+fun saveRouteForMatch(
+    userId: String,
+    friendId: String,
+    coordinatesList: List<LatLng>,
+    onSuccess: () -> Unit
+) {
     if (coordinatesList.size < 2) return
 
     FirestoreHelper.getMatchIdForUsers(
@@ -241,7 +252,14 @@ fun saveRouteForMatch(userId: String, friendId: String, coordinatesList: List<La
                 )
             }
 
-            FirestoreHelper.storeRoutesInFirestore(matchId, routeData)
+            FirestoreHelper.storeRoutesInFirestore(matchId, routeData,
+                onSuccess = {
+                    onSuccess()
+                },
+                onFailure = { error ->
+                    Log.e("Firestore", "Failed to save route: $error")
+                }
+            )
         },
         onFailure = { error ->
             Log.e("Firestore", "Match not found: $error")
