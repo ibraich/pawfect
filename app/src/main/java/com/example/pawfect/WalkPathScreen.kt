@@ -40,6 +40,8 @@ import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,7 +55,8 @@ import org.json.JSONObject
 fun WalkPathScreen(navController: NavHostController, coordinates: String?, friendId: String?) {
 
     val coordinatesList = parseCoordinates(coordinates)
-
+    val auth = Firebase.auth
+    val userId = auth.currentUser?.uid
 
     Log.d(TAG, "What do we get: " + coordinates);
 
@@ -186,9 +189,57 @@ fun WalkPathScreen(navController: NavHostController, coordinates: String?, frien
                     modifier = Modifier.size(32.dp)
                 )
             }
+
+            // Accept Route Button
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(color = Color(0xFFFF9800), shape = CircleShape)
+                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                        if (userId != null && friendId != null) {
+                            saveRouteForMatch(userId, friendId, coordinatesList)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_plus),
+                    contentDescription = "Accept Route",
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }
+
+fun saveRouteForMatch(userId: String, friendId: String, coordinatesList: List<LatLng>) {
+    if (coordinatesList.size < 2) return
+
+    FirestoreHelper.getMatchIdForUsers(
+        user1Id = userId,
+        user2Id = friendId,
+        onSuccess = { matchId ->
+            Log.d("Firestore", "Match found with ID: $matchId")
+
+            val routeData = coordinatesList.zipWithNext { start, stop ->
+                mapOf(
+                    "startLatitude" to start.latitude,
+                    "startLongitude" to start.longitude,
+                    "stopLatitude" to stop.latitude,
+                    "stopLongitude" to stop.longitude
+                )
+            }
+
+            FirestoreHelper.storeRoutesInFirestore(matchId, routeData)
+        },
+        onFailure = { error ->
+            Log.e("Firestore", "Match not found: $error")
+        }
+    )
+}
+
+
 
 fun parseCoordinates(coordinatesString: String?): List<LatLng> {
     if (coordinatesString.isNullOrBlank()) return emptyList()

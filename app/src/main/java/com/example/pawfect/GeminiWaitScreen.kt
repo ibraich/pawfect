@@ -50,10 +50,11 @@ import coil3.request.crossfade
 import com.example.appinterface.R
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.LatLng
 
 @Preview
 @Composable
-fun GeminiWaitScreen() {
+fun PreviewGeminiWaitScreen() {
     GeminiWaitScreen(rememberNavController(), "1")
 }
 
@@ -82,10 +83,15 @@ fun GeminiWaitScreen(navController: NavHostController, friendId: String?) {
                         }
 
                         override fun onError(throwable: Throwable) {
+                            val fallbackCoordinates = listOf(
+                                LatLng(49.9327659, 11.5687332),
+                                LatLng(49.9213951, 11.5579074)
+                            )
+
                             val coordinatesJson = """
-                        [[49.9327659, 11.5687332],
-                         [49.9213951, 11.5579074]]
-                         """.trimIndent()
+            [[49.9327659, 11.5687332],
+            [49.9213951, 11.5579074]]
+        """.trimIndent()
 
                             navController.navigate("walk_path_screen/$coordinatesJson/$friendId")
                         }
